@@ -1,4 +1,5 @@
 using ChalkScore.Api.Data;
+using ChalkScore.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,7 +21,17 @@ builder.Services
         options.Audience = builder.Configuration["Auth0:Audience"];
     });
 
-builder.Services.AddAuthorization();
+// Role-based policies using custom Auth0 claim
+const string rolesClaim = "https://chalkscore.app/roles";
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CoachOnly", policy =>
+        policy.RequireClaim(rolesClaim, "Coach"));
+    options.AddPolicy("AnyUser", policy =>
+        policy.RequireAuthenticatedUser());
+});
+
+builder.Services.AddScoped<UserSyncService>();
 
 var app = builder.Build();
 
