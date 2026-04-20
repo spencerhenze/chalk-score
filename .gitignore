@@ -1,8 +1,8 @@
 # .NET
-api/bin/
-api/obj/
-api/*.user
-api/.vs/
+**/bin/
+**/obj/
+**/*.user
+**/.vs/
 api/**/*.env
 
 # Node / Ionic
