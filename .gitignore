@@ -1,0 +1,20 @@
+# .NET
+api/bin/
+api/obj/
+api/*.user
+api/.vs/
+api/**/*.env
+
+# Node / Ionic
+mobile/node_modules/
+mobile/dist/
+mobile/.angular/
+mobile/www/
+
+# Environment
+.env
+*.env.local
+
+# OS
+.DS_Store
+Thumbs.db
