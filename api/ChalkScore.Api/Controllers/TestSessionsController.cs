@@ -144,6 +144,32 @@ public class TestSessionsController(AppDbContext db) : ControllerBase
         return NoContent();
     }
 
+    // --- Results summary ---
+
+    [HttpGet("{id:guid}/results")]
+    public async Task<IActionResult> GetResults(Guid id)
+    {
+        var session = await db.TestSessions.FindAsync(id);
+        if (session is null) return NotFound();
+
+        var results = await db.TestSessionGymnasts
+            .Where(tsg => tsg.TestSessionId == id)
+            .OrderBy(tsg => tsg.Gymnast.LastName).ThenBy(tsg => tsg.Gymnast.FirstName)
+            .Select(tsg => new SessionGymnastResult(
+                tsg.Id,
+                tsg.GymnastId,
+                tsg.Gymnast.FirstName,
+                tsg.Gymnast.LastName,
+                tsg.Gymnast.Level,
+                tsg.TestConfiguration.Name,
+                tsg.IsCompleted,
+                tsg.FinalScore
+            ))
+            .ToListAsync();
+
+        return Ok(new SessionResultsResponse(session.Id, session.Name, session.Date, results));
+    }
+
     // --- Helpers ---
 
     private async Task<IActionResult> GetByStatus(bool active)

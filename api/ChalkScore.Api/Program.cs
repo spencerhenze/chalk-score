@@ -43,4 +43,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Seed Beginner + Advanced test configurations on first run
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DataSeeder.SeedAsync(db);
+}
+
 app.Run();
