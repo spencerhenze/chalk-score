@@ -109,6 +109,7 @@ jobs:
         run: |
           az provider register --namespace Microsoft.App --wait --output none
           az provider register --namespace Microsoft.OperationalInsights --wait --output none
+          az provider register --namespace Microsoft.DBforPostgreSQL --wait --output none
 
       - name: Ensure resource group
         run: |
