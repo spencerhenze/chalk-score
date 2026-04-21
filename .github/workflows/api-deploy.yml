@@ -13,7 +13,7 @@ env:
   PROJECT_PATH: 'api/ChalkScore.Api/ChalkScore.Api.csproj'
   DOCKERFILE_PATH: 'api/ChalkScore.Api'
   IMAGE_NAME: 'ghcr.io/${{ github.repository_owner }}/chalk-score-api'
-  AZURE_LOCATION: 'eastus'
+  AZURE_LOCATION: 'eastus2'
 
 jobs:
   build:
