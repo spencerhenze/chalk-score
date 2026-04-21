@@ -28,8 +28,21 @@ jobs:
           cache: 'npm'
           cache-dependency-path: mobile/chalk-score-app/package-lock.json
 
+      - name: Print npm version
+        run: npm --version
+
       - name: Install dependencies
+        id: npm-install
         run: npm install --omit=optional
+        continue-on-error: true
+
+      - name: Print npm debug log on failure
+        if: steps.npm-install.outcome == 'failure'
+        run: cat ~/.npm/_logs/*.log | head -100
+
+      - name: Fail if install failed
+        if: steps.npm-install.outcome == 'failure'
+        run: exit 1
 
       - name: Build
         run: npx ng build --configuration production
