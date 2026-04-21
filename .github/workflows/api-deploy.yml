@@ -117,6 +117,23 @@ jobs:
             --tags environment=$ENV_SLUG project=chalkscore \
             --output none
 
+      - name: Convert DATABASE_URL to Npgsql format
+        run: |
+          NPGSQL=$(node -e "
+          const url = new URL(process.env.DATABASE_URL);
+          process.stdout.write([
+            'Host='     + url.hostname,
+            'Database=' + url.pathname.slice(1),
+            'Username=' + decodeURIComponent(url.username),
+            'Password=' + decodeURIComponent(url.password),
+            'SslMode=Require'
+          ].join(';'));
+          ")
+          echo "::add-mask::$NPGSQL"
+          echo "NPGSQL_CONN=$NPGSQL" >> $GITHUB_ENV
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Download migration bundle
         uses: actions/download-artifact@v4
         with:
@@ -126,7 +143,7 @@ jobs:
       - name: Run migrations
         run: |
           chmod +x ./efbundle
-          ./efbundle --connection "${{ secrets.DATABASE_URL }}"
+          ./efbundle --connection "$NPGSQL_CONN"
 
       - name: Ensure Container Apps environment
         run: |
@@ -160,7 +177,7 @@ jobs:
               --registry-username ${{ github.actor }} \
               --registry-password "${{ secrets.GHCR_TOKEN }}" \
               --env-vars \
-                "ConnectionStrings__DefaultConnection=${{ secrets.DATABASE_URL }}" \
+                "ConnectionStrings__DefaultConnection=$NPGSQL_CONN" \
                 "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
                 "Auth0__Audience=${{ secrets.AUTH0_AUDIENCE }}" \
               --output none
