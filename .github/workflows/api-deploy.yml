@@ -1,0 +1,180 @@
+name: API Deploy
+
+on:
+  push:
+    branches: [develop, release, master]
+    paths:
+      - 'api/**'
+      - '.github/workflows/api-deploy.yml'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  PROJECT_PATH: 'api/ChalkScore.Api/ChalkScore.Api.csproj'
+  AZURE_LOCATION: 'eastus'
+
+jobs:
+  build:
+    name: Build & Bundle
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.PROJECT_PATH }} --no-restore -c Release
+
+      - name: Publish
+        run: dotnet publish ${{ env.PROJECT_PATH }} --no-build -c Release -o ./publish
+
+      - name: Install EF tools
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Create migration bundle
+        run: |
+          dotnet ef migrations bundle \
+            --project ${{ env.PROJECT_PATH }} \
+            --self-contained \
+            --runtime linux-x64 \
+            --output ./efbundle \
+            --force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-publish
+          path: ./publish
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: migration-bundle
+          path: ./efbundle
+
+  deploy:
+    name: Deploy (${{ github.ref_name }})
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'master' && 'production' || github.ref_name == 'release' && 'staging' || 'dev' }}
+
+    steps:
+      - name: Set resource names
+        run: |
+          if [[ "${{ github.ref_name }}" == "master" ]]; then
+            ENV_SLUG="prod"
+          elif [[ "${{ github.ref_name }}" == "release" ]]; then
+            ENV_SLUG="staging"
+          else
+            ENV_SLUG="dev"
+          fi
+          echo "ENV_SLUG=$ENV_SLUG"                              >> $GITHUB_ENV
+          echo "RESOURCE_GROUP=chalkscore-$ENV_SLUG"            >> $GITHUB_ENV
+          echo "APP_SERVICE_PLAN=chalkscore-plan-$ENV_SLUG"     >> $GITHUB_ENV
+          echo "APP_NAME=chalkscore-api-$ENV_SLUG"              >> $GITHUB_ENV
+          echo "DB_SERVER=chalkscore-db-$ENV_SLUG"              >> $GITHUB_ENV
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Ensure resource group
+        run: |
+          az group create \
+            --name $RESOURCE_GROUP \
+            --location ${{ env.AZURE_LOCATION }} \
+            --tags environment=$ENV_SLUG project=chalkscore \
+            --output none
+
+      - name: Ensure App Service Plan
+        run: |
+          if ! az appservice plan show --name $APP_SERVICE_PLAN --resource-group $RESOURCE_GROUP &>/dev/null; then
+            az appservice plan create \
+              --name $APP_SERVICE_PLAN \
+              --resource-group $RESOURCE_GROUP \
+              --sku B1 \
+              --is-linux \
+              --output none
+          fi
+
+      - name: Ensure App Service
+        run: |
+          if ! az webapp show --name $APP_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
+            az webapp create \
+              --name $APP_NAME \
+              --resource-group $RESOURCE_GROUP \
+              --plan $APP_SERVICE_PLAN \
+              --runtime "DOTNETCORE:10.0" \
+              --output none
+          fi
+
+      - name: Ensure PostgreSQL server
+        run: |
+          if ! az postgres flexible-server show --name $DB_SERVER --resource-group $RESOURCE_GROUP &>/dev/null; then
+            az postgres flexible-server create \
+              --name $DB_SERVER \
+              --resource-group $RESOURCE_GROUP \
+              --location ${{ env.AZURE_LOCATION }} \
+              --admin-user chalkscore_admin \
+              --admin-password "${{ secrets.AZURE_DB_PASSWORD }}" \
+              --sku-name Standard_B1ms \
+              --tier Burstable \
+              --storage-size 32 \
+              --version 16 \
+              --output none
+          fi
+
+      - name: Ensure database and firewall rule
+        run: |
+          az postgres flexible-server db create \
+            --server-name $DB_SERVER \
+            --resource-group $RESOURCE_GROUP \
+            --database-name chalkscore \
+            --output none 2>/dev/null || true
+
+          az postgres flexible-server firewall-rule create \
+            --name AllowAzureServices \
+            --server-name $DB_SERVER \
+            --resource-group $RESOURCE_GROUP \
+            --start-ip-address 0.0.0.0 \
+            --end-ip-address 0.0.0.0 \
+            --output none 2>/dev/null || true
+
+      - name: Download migration bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: migration-bundle
+          path: ./
+
+      - name: Run migrations
+        run: |
+          chmod +x ./efbundle
+          ./efbundle --connection "Host=$DB_SERVER.postgres.database.azure.com;Database=chalkscore;Username=chalkscore_admin;Password=${{ secrets.AZURE_DB_PASSWORD }};SslMode=Require"
+
+      - name: Configure App Service settings
+        run: |
+          az webapp config appsettings set \
+            --name $APP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --settings \
+              "ConnectionStrings__DefaultConnection=Host=$DB_SERVER.postgres.database.azure.com;Database=chalkscore;Username=chalkscore_admin;Password=${{ secrets.AZURE_DB_PASSWORD }};SslMode=Require" \
+              "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
+              "Auth0__Audience=${{ secrets.AUTH0_AUDIENCE }}" \
+            --output none
+
+      - name: Download publish artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-publish
+          path: ./publish
+
+      - name: Deploy to App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.APP_NAME }}
+          package: ./publish
