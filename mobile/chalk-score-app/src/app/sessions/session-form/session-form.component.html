@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()">Cancel</ion-button>
+    </ion-buttons>
+    <ion-title>New Session</ion-title>
+    <ion-buttons slot="end">
+      <ion-button strong (click)="save()" [disabled]="form.invalid">Create</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="form">
+    <ion-list lines="full" class="ion-no-margin">
+      <ion-item>
+        <ion-input
+          formControlName="name"
+          label="Session Name"
+          labelPlacement="stacked"
+          placeholder="e.g. Spring 2026 Week 1"
+          clearInput>
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          formControlName="date"
+          label="Date"
+          labelPlacement="stacked"
+          type="date">
+        </ion-input>
+      </ion-item>
+    </ion-list>
+  </form>
+</ion-content>

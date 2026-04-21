@@ -1,0 +1,85 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/tabs/sessions/' + sessionId"></ion-back-button>
+    </ion-buttons>
+    <ion-title *ngIf="entry">
+      {{ entry.lastName }}, {{ entry.firstName }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div *ngIf="loading" class="ion-padding ion-text-center">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <ng-container *ngIf="entry && !loading">
+    <!-- Completed banner -->
+    <ion-item color="success" *ngIf="entry.isCompleted" lines="none">
+      <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+      <ion-label>
+        <strong>Test Complete</strong> · Final Score: {{ entry.finalScore | number:'1.1-1' }}
+      </ion-label>
+    </ion-item>
+
+    <!-- Subheader -->
+    <ion-item lines="none" color="light">
+      <ion-label>
+        <p>{{ entry.testConfigurationName }} · Level {{ entry.level }}</p>
+      </ion-label>
+    </ion-item>
+
+    <form [formGroup]="form" *ngIf="!entry.isCompleted">
+      <ion-list lines="full">
+        <ion-item *ngFor="let exercise of entry.results">
+          <ion-label position="stacked">
+            {{ exercise.exerciseName }}
+            <span *ngIf="exercise.unit"> ({{ exercise.unit }})</span>
+            <span class="score-preview">
+              &nbsp;· {{ scoreFor(exercise.exerciseId) | number:'1.0-0' }}%
+            </span>
+          </ion-label>
+          <ion-input
+            [formControlName]="exercise.exerciseId"
+            type="number"
+            inputmode="decimal"
+            [placeholder]="'0 – ' + exercise.maxValue"
+            [min]="0"
+            [max]="exercise.scoringType === 'Percentage' ? 100 : exercise.maxValue"
+            step="0.5">
+          </ion-input>
+        </ion-item>
+      </ion-list>
+    </form>
+
+    <!-- Read-only view when completed -->
+    <ion-list lines="full" *ngIf="entry.isCompleted">
+      <ion-item *ngFor="let exercise of entry.results">
+        <ion-label>
+          <p class="exercise-label">{{ exercise.exerciseName }}</p>
+          <h3>{{ exercise.rawValue }} <span class="unit">{{ exercise.unit }}</span></h3>
+        </ion-label>
+        <ion-note slot="end" color="primary">
+          {{ exercise.calculatedScore | number:'1.0-0' }}%
+        </ion-note>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+</ion-content>
+
+<ion-footer *ngIf="entry && !entry.isCompleted">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="outline" (click)="save()" [disabled]="saving || form.invalid">
+        <ion-spinner *ngIf="saving" name="crescent" slot="start"></ion-spinner>
+        Save
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button fill="solid" color="success" (click)="confirmComplete()" [disabled]="saving || form.invalid">
+        Complete Test
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

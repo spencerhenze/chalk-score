@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()">Cancel</ion-button>
+    </ion-buttons>
+    <ion-title>{{ isEdit ? 'Edit Gymnast' : 'Add Gymnast' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button strong (click)="save()" [disabled]="form.invalid">Save</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="form">
+    <ion-list lines="full" class="ion-no-margin">
+      <ion-item>
+        <ion-input
+          formControlName="firstName"
+          label="First Name"
+          labelPlacement="stacked"
+          placeholder="First name"
+          autocapitalize="words"
+          clearInput>
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          formControlName="lastName"
+          label="Last Name"
+          labelPlacement="stacked"
+          placeholder="Last name"
+          autocapitalize="words"
+          clearInput>
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-select formControlName="level" label="Level" labelPlacement="stacked">
+          <ion-select-option *ngFor="let l of levels" [value]="l">Level {{ l }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-list>
+  </form>
+</ion-content>

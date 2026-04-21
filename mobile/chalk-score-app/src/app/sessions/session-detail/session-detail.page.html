@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/sessions"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Session</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openAddGymnast()">
+        <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div *ngIf="loading" class="ion-padding ion-text-center">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <ion-list *ngIf="!loading">
+    <ion-item-sliding *ngFor="let tsg of gymnasts">
+      <ion-item (click)="enterScores(tsg)" button detail>
+        <ion-icon
+          slot="start"
+          [name]="tsg.isCompleted ? 'checkmark-circle-outline' : 'ellipse-outline'"
+          [color]="tsg.isCompleted ? 'success' : 'medium'">
+        </ion-icon>
+        <ion-label>
+          <h2>{{ tsg.lastName }}, {{ tsg.firstName }}</h2>
+          <p>{{ tsg.testConfigurationName }} · Lvl {{ tsg.level }}</p>
+        </ion-label>
+        <ion-note slot="end" *ngIf="tsg.finalScore !== null">
+          {{ tsg.finalScore | number:'1.1-1' }}
+        </ion-note>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="danger" (click)="confirmRemove(tsg)">
+          <ion-icon slot="icon-only" name="person-remove-outline"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+
+    <ion-item *ngIf="gymnasts.length === 0">
+      <ion-label class="ion-text-center ion-padding">
+        <p>No gymnasts in this session. Tap the icon to add one.</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

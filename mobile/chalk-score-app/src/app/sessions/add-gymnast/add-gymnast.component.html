@@ -1,0 +1,49 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()">Cancel</ion-button>
+    </ion-buttons>
+    <ion-title>Add Gymnast</ion-title>
+    <ion-buttons slot="end">
+      <ion-button strong (click)="save()" [disabled]="form.invalid">Add</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <form *ngIf="!loading" [formGroup]="form">
+    <ion-list lines="full" class="ion-no-margin">
+      <ion-item>
+        <ion-select
+          formControlName="gymnastId"
+          label="Gymnast"
+          labelPlacement="stacked"
+          placeholder="Select gymnast">
+          <ion-select-option *ngFor="let g of gymnasts" [value]="g.id">
+            {{ g.lastName }}, {{ g.firstName }} — Lvl {{ g.level }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-select
+          formControlName="testConfigurationId"
+          label="Test Type"
+          labelPlacement="stacked"
+          placeholder="Select test type">
+          <ion-select-option *ngFor="let c of configurations" [value]="c.id">
+            {{ c.name }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-list>
+
+    <p *ngIf="gymnasts.length === 0" class="ion-padding ion-text-center">
+      All gymnasts have already been added to this session.
+    </p>
+  </form>
+</ion-content>

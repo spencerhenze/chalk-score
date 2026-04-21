@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">chalk-score-app</string>
+    <string name="title_activity_main">chalk-score-app</string>
+    <string name="package_name">com.chalkscore.app</string>
+    <string name="custom_url_scheme">com.chalkscore.app</string>
+</resources>

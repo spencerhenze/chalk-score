@@ -1,0 +1,26 @@
+.session-picker {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 16px;
+}
+
+.summary-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rank-label {
+  min-width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  margin-right: 8px;
+}
+
+.rank-number {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+}
