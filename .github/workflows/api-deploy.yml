@@ -117,23 +117,6 @@ jobs:
             --tags environment=$ENV_SLUG project=chalkscore \
             --output none
 
-      - name: Convert DATABASE_URL to Npgsql format
-        run: |
-          NPGSQL=$(node -e "
-          const url = new URL(process.env.DATABASE_URL);
-          process.stdout.write([
-            'Host='     + url.hostname,
-            'Database=' + url.pathname.slice(1),
-            'Username=' + decodeURIComponent(url.username),
-            'Password=' + decodeURIComponent(url.password),
-            'SslMode=Require'
-          ].join(';'));
-          ")
-          echo "::add-mask::$NPGSQL"
-          echo "NPGSQL_CONN=$NPGSQL" >> $GITHUB_ENV
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
       - name: Download migration bundle
         uses: actions/download-artifact@v4
         with:
@@ -142,8 +125,15 @@ jobs:
 
       - name: Run migrations
         run: |
+          NPGSQL=$(python3 -c "
+import os, urllib.parse as p
+u = p.urlparse(os.environ['DATABASE_URL'])
+print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require', end='')
+          ")
           chmod +x ./efbundle
-          ./efbundle --connection "$NPGSQL_CONN"
+          ./efbundle --connection "$NPGSQL"
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Ensure Container Apps environment
         run: |
@@ -157,6 +147,12 @@ jobs:
 
       - name: Deploy Container App
         run: |
+          NPGSQL=$(python3 -c "
+import os, urllib.parse as p
+u = p.urlparse(os.environ['DATABASE_URL'])
+print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require', end='')
+          ")
+
           if az containerapp show --name $APP_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
             az containerapp update \
               --name $APP_NAME \
@@ -177,8 +173,10 @@ jobs:
               --registry-username ${{ github.actor }} \
               --registry-password "${{ secrets.GHCR_TOKEN }}" \
               --env-vars \
-                "ConnectionStrings__DefaultConnection=$NPGSQL_CONN" \
+                "ConnectionStrings__DefaultConnection=$NPGSQL" \
                 "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
                 "Auth0__Audience=${{ secrets.AUTH0_AUDIENCE }}" \
               --output none
           fi
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
