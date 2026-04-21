@@ -97,7 +97,6 @@ jobs:
           echo "RESOURCE_GROUP=chalkscore-$ENV_SLUG"              >> $GITHUB_ENV
           echo "CONTAINER_ENV=chalkscore-env-$ENV_SLUG"           >> $GITHUB_ENV
           echo "APP_NAME=chalkscore-api-$ENV_SLUG"                >> $GITHUB_ENV
-          echo "DB_SERVER=chalkscore-db-$ENV_SLUG"                >> $GITHUB_ENV
           echo "IMAGE=${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image_tag }}" >> $GITHUB_ENV
 
       - name: Azure login
@@ -109,7 +108,6 @@ jobs:
         run: |
           az provider register --namespace Microsoft.App --wait --output none
           az provider register --namespace Microsoft.OperationalInsights --wait --output none
-          az provider register --namespace Microsoft.DBforPostgreSQL --wait --output none
 
       - name: Ensure resource group
         run: |
@@ -119,39 +117,6 @@ jobs:
             --tags environment=$ENV_SLUG project=chalkscore \
             --output none
 
-      - name: Ensure PostgreSQL server
-        run: |
-          if ! az postgres flexible-server show --name $DB_SERVER --resource-group $RESOURCE_GROUP &>/dev/null; then
-            az postgres flexible-server create \
-              --name $DB_SERVER \
-              --resource-group $RESOURCE_GROUP \
-              --location ${{ env.AZURE_LOCATION }} \
-              --admin-user chalkscore_admin \
-              --admin-password "${{ secrets.AZURE_DB_PASSWORD }}" \
-              --sku-name Standard_B1ms \
-              --tier Burstable \
-              --storage-size 32 \
-              --version 16 \
-              --yes \
-              --output none
-          fi
-
-      - name: Ensure database and Azure services firewall rule
-        run: |
-          az postgres flexible-server db create \
-            --server-name $DB_SERVER \
-            --resource-group $RESOURCE_GROUP \
-            --database-name chalkscore \
-            --output none 2>/dev/null || true
-
-          az postgres flexible-server firewall-rule create \
-            --name AllowAzureServices \
-            --server-name $DB_SERVER \
-            --resource-group $RESOURCE_GROUP \
-            --start-ip-address 0.0.0.0 \
-            --end-ip-address 0.0.0.0 \
-            --output none 2>/dev/null || true
-
       - name: Download migration bundle
         uses: actions/download-artifact@v4
         with:
@@ -160,23 +125,8 @@ jobs:
 
       - name: Run migrations
         run: |
-          RUNNER_IP=$(curl -s https://api.ipify.org)
-          az postgres flexible-server firewall-rule create \
-            --name github-actions-runner \
-            --server-name $DB_SERVER \
-            --resource-group $RESOURCE_GROUP \
-            --start-ip-address $RUNNER_IP \
-            --end-ip-address $RUNNER_IP \
-            --output none
-
           chmod +x ./efbundle
-          ./efbundle --connection "Host=$DB_SERVER.postgres.database.azure.com;Database=chalkscore;Username=chalkscore_admin;Password=${{ secrets.AZURE_DB_PASSWORD }};SslMode=Require"
-
-          az postgres flexible-server firewall-rule delete \
-            --name github-actions-runner \
-            --server-name $DB_SERVER \
-            --resource-group $RESOURCE_GROUP \
-            --yes --output none
+          ./efbundle --connection "${{ secrets.DATABASE_URL }}"
 
       - name: Ensure Container Apps environment
         run: |
@@ -190,8 +140,6 @@ jobs:
 
       - name: Deploy Container App
         run: |
-          DB_CONN="Host=$DB_SERVER.postgres.database.azure.com;Database=chalkscore;Username=chalkscore_admin;Password=${{ secrets.AZURE_DB_PASSWORD }};SslMode=Require"
-
           if az containerapp show --name $APP_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
             az containerapp update \
               --name $APP_NAME \
@@ -212,7 +160,7 @@ jobs:
               --registry-username ${{ github.actor }} \
               --registry-password "${{ secrets.GHCR_TOKEN }}" \
               --env-vars \
-                "ConnectionStrings__DefaultConnection=$DB_CONN" \
+                "ConnectionStrings__DefaultConnection=${{ secrets.DATABASE_URL }}" \
                 "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
                 "Auth0__Audience=${{ secrets.AUTH0_AUDIENCE }}" \
               --output none
