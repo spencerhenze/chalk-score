@@ -94,10 +94,11 @@ jobs:
       - name: Ensure App Service Plan
         run: |
           if ! az appservice plan show --name $APP_SERVICE_PLAN --resource-group $RESOURCE_GROUP &>/dev/null; then
+            if [[ "$ENV_SLUG" == "dev" ]]; then SKU="F1"; else SKU="B1"; fi
             az appservice plan create \
               --name $APP_SERVICE_PLAN \
               --resource-group $RESOURCE_GROUP \
-              --sku B1 \
+              --sku $SKU \
               --is-linux \
               --output none
           fi
