@@ -131,6 +131,7 @@ jobs:
               --tier Burstable \
               --storage-size 32 \
               --version 16 \
+              --yes \
               --output none
           fi
 
