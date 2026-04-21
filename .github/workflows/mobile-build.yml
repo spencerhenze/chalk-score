@@ -28,21 +28,19 @@ jobs:
           cache: 'npm'
           cache-dependency-path: mobile/chalk-score-app/package-lock.json
 
-      - name: Print npm version
-        run: npm --version
+      - name: Remove platform-specific lockfile entries
+        run: |
+          node -e "
+          const fs = require('fs');
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          Object.keys(lock.packages).forEach(k => {
+            if (/darwin|win32|linux-arm|linux-musl/.test(k)) delete lock.packages[k];
+          });
+          fs.writeFileSync('package-lock.json', JSON.stringify(lock));
+          "
 
       - name: Install dependencies
-        id: npm-install
         run: npm install --omit=optional
-        continue-on-error: true
-
-      - name: Print npm debug log on failure
-        if: steps.npm-install.outcome == 'failure'
-        run: cat ~/.npm/_logs/*.log | head -100
-
-      - name: Fail if install failed
-        if: steps.npm-install.outcome == 'failure'
-        run: exit 1
 
       - name: Build
         run: npx ng build --configuration production
