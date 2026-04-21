@@ -125,11 +125,7 @@ jobs:
 
       - name: Run migrations
         run: |
-          NPGSQL=$(python3 -c "
-import os, urllib.parse as p
-u = p.urlparse(os.environ['DATABASE_URL'])
-print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require', end='')
-          ")
+          NPGSQL=$(python3 -c "import os,urllib.parse as p; u=p.urlparse(os.environ['DATABASE_URL']); print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require',end='')")
           chmod +x ./efbundle
           ./efbundle --connection "$NPGSQL"
         env:
@@ -147,11 +143,7 @@ print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)}
 
       - name: Deploy Container App
         run: |
-          NPGSQL=$(python3 -c "
-import os, urllib.parse as p
-u = p.urlparse(os.environ['DATABASE_URL'])
-print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require', end='')
-          ")
+          NPGSQL=$(python3 -c "import os,urllib.parse as p; u=p.urlparse(os.environ['DATABASE_URL']); print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require',end='')")
 
           if az containerapp show --name $APP_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
             az containerapp update \
