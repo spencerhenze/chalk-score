@@ -11,12 +11,20 @@ on:
 env:
   DOTNET_VERSION: '10.0.x'
   PROJECT_PATH: 'api/ChalkScore.Api/ChalkScore.Api.csproj'
+  DOCKERFILE_PATH: 'api/ChalkScore.Api'
+  IMAGE_NAME: 'ghcr.io/${{ github.repository_owner }}/chalk-score-api'
   AZURE_LOCATION: 'eastus'
 
 jobs:
   build:
-    name: Build & Bundle
+    name: Build & Push
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -27,12 +35,6 @@ jobs:
 
       - name: Restore
         run: dotnet restore ${{ env.PROJECT_PATH }} -r linux-x64
-
-      - name: Build
-        run: dotnet build ${{ env.PROJECT_PATH }} --no-restore -c Release -r linux-x64 --self-contained false
-
-      - name: Publish
-        run: dotnet publish ${{ env.PROJECT_PATH }} --no-build -c Release -r linux-x64 --self-contained false -o ./publish
 
       - name: Install EF tools
         run: dotnet tool install --global dotnet-ef
@@ -48,13 +50,32 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: api-publish
-          path: ./publish
-
-      - uses: actions/upload-artifact@v4
-        with:
           name: migration-bundle
           path: ./efbundle
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=${{ github.ref_name }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.DOCKERFILE_PATH }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
   deploy:
     name: Deploy (${{ github.ref_name }})
@@ -72,16 +93,22 @@ jobs:
           else
             ENV_SLUG="dev"
           fi
-          echo "ENV_SLUG=$ENV_SLUG"                              >> $GITHUB_ENV
-          echo "RESOURCE_GROUP=chalkscore-$ENV_SLUG"            >> $GITHUB_ENV
-          echo "APP_SERVICE_PLAN=chalkscore-plan-$ENV_SLUG"     >> $GITHUB_ENV
-          echo "APP_NAME=chalkscore-api-$ENV_SLUG"              >> $GITHUB_ENV
-          echo "DB_SERVER=chalkscore-db-$ENV_SLUG"              >> $GITHUB_ENV
+          echo "ENV_SLUG=$ENV_SLUG"                                >> $GITHUB_ENV
+          echo "RESOURCE_GROUP=chalkscore-$ENV_SLUG"              >> $GITHUB_ENV
+          echo "CONTAINER_ENV=chalkscore-env-$ENV_SLUG"           >> $GITHUB_ENV
+          echo "APP_NAME=chalkscore-api-$ENV_SLUG"                >> $GITHUB_ENV
+          echo "DB_SERVER=chalkscore-db-$ENV_SLUG"                >> $GITHUB_ENV
+          echo "IMAGE=${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image_tag }}" >> $GITHUB_ENV
 
       - name: Azure login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Register required providers
+        run: |
+          az provider register --namespace Microsoft.App --wait --output none
+          az provider register --namespace Microsoft.OperationalInsights --wait --output none
 
       - name: Ensure resource group
         run: |
@@ -90,29 +117,6 @@ jobs:
             --location ${{ env.AZURE_LOCATION }} \
             --tags environment=$ENV_SLUG project=chalkscore \
             --output none
-
-      - name: Ensure App Service Plan
-        run: |
-          if ! az appservice plan show --name $APP_SERVICE_PLAN --resource-group $RESOURCE_GROUP &>/dev/null; then
-            if [[ "$ENV_SLUG" == "dev" ]]; then SKU="F1"; else SKU="B1"; fi
-            az appservice plan create \
-              --name $APP_SERVICE_PLAN \
-              --resource-group $RESOURCE_GROUP \
-              --sku $SKU \
-              --is-linux \
-              --output none
-          fi
-
-      - name: Ensure App Service
-        run: |
-          if ! az webapp show --name $APP_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
-            az webapp create \
-              --name $APP_NAME \
-              --resource-group $RESOURCE_GROUP \
-              --plan $APP_SERVICE_PLAN \
-              --runtime "DOTNETCORE:10.0" \
-              --output none
-          fi
 
       - name: Ensure PostgreSQL server
         run: |
@@ -130,7 +134,7 @@ jobs:
               --output none
           fi
 
-      - name: Ensure database and firewall rule
+      - name: Ensure database and Azure services firewall rule
         run: |
           az postgres flexible-server db create \
             --server-name $DB_SERVER \
@@ -154,28 +158,60 @@ jobs:
 
       - name: Run migrations
         run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          az postgres flexible-server firewall-rule create \
+            --name github-actions-runner \
+            --server-name $DB_SERVER \
+            --resource-group $RESOURCE_GROUP \
+            --start-ip-address $RUNNER_IP \
+            --end-ip-address $RUNNER_IP \
+            --output none
+
           chmod +x ./efbundle
           ./efbundle --connection "Host=$DB_SERVER.postgres.database.azure.com;Database=chalkscore;Username=chalkscore_admin;Password=${{ secrets.AZURE_DB_PASSWORD }};SslMode=Require"
 
-      - name: Configure App Service settings
-        run: |
-          az webapp config appsettings set \
-            --name $APP_NAME \
+          az postgres flexible-server firewall-rule delete \
+            --name github-actions-runner \
+            --server-name $DB_SERVER \
             --resource-group $RESOURCE_GROUP \
-            --settings \
-              "ConnectionStrings__DefaultConnection=Host=$DB_SERVER.postgres.database.azure.com;Database=chalkscore;Username=chalkscore_admin;Password=${{ secrets.AZURE_DB_PASSWORD }};SslMode=Require" \
-              "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
-              "Auth0__Audience=${{ secrets.AUTH0_AUDIENCE }}" \
-            --output none
+            --yes --output none
 
-      - name: Download publish artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: api-publish
-          path: ./publish
+      - name: Ensure Container Apps environment
+        run: |
+          if ! az containerapp env show --name $CONTAINER_ENV --resource-group $RESOURCE_GROUP &>/dev/null; then
+            az containerapp env create \
+              --name $CONTAINER_ENV \
+              --resource-group $RESOURCE_GROUP \
+              --location ${{ env.AZURE_LOCATION }} \
+              --output none
+          fi
 
-      - name: Deploy to App Service
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.APP_NAME }}
-          package: ./publish
+      - name: Deploy Container App
+        run: |
+          DB_CONN="Host=$DB_SERVER.postgres.database.azure.com;Database=chalkscore;Username=chalkscore_admin;Password=${{ secrets.AZURE_DB_PASSWORD }};SslMode=Require"
+
+          if az containerapp show --name $APP_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
+            az containerapp update \
+              --name $APP_NAME \
+              --resource-group $RESOURCE_GROUP \
+              --image $IMAGE \
+              --output none
+          else
+            az containerapp create \
+              --name $APP_NAME \
+              --resource-group $RESOURCE_GROUP \
+              --environment $CONTAINER_ENV \
+              --image $IMAGE \
+              --target-port 8080 \
+              --ingress external \
+              --min-replicas 0 \
+              --max-replicas 1 \
+              --registry-server ghcr.io \
+              --registry-username ${{ github.actor }} \
+              --registry-password "${{ secrets.GHCR_TOKEN }}" \
+              --env-vars \
+                "ConnectionStrings__DefaultConnection=$DB_CONN" \
+                "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
+                "Auth0__Audience=${{ secrets.AUTH0_AUDIENCE }}" \
+              --output none
+          fi
