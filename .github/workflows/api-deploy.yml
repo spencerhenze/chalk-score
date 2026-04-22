@@ -161,6 +161,9 @@ jobs:
               --ingress external \
               --min-replicas 0 \
               --max-replicas 1 \
+              --registry-server ghcr.io \
+              --registry-username ${{ github.repository_owner }} \
+              --registry-password "${{ secrets.GHCR_TOKEN }}" \
               --env-vars \
                 "ConnectionStrings__DefaultConnection=$NPGSQL" \
                 "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
