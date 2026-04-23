@@ -54,7 +54,7 @@ export class TestEntryPage implements OnInit {
     for (const r of results) {
       const max = r.scoringType === 'Percentage' ? 100 : r.maxValue;
       controls[r.exerciseId] = [
-        r.rawValue ?? 0,
+        r.rawValue ?? null,
         [Validators.required, Validators.min(0), Validators.max(Number(max))],
       ];
     }
@@ -127,7 +127,9 @@ export class TestEntryPage implements OnInit {
 
   scoreFor(exerciseId: string): number {
     if (!this.entry) return 0;
-    const raw = Number(this.form?.value[exerciseId]) || 0;
+    const val = this.form?.value[exerciseId];
+    if (val === null || val === '') return 0;
+    const raw = Number(val) || 0;
     const exercise = this.entry.results.find(r => r.exerciseId === exerciseId);
     if (!exercise) return 0;
     return this.calculatePreview(raw, exercise);

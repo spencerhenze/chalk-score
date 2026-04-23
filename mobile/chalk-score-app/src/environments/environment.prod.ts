@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  nativeBrowser: true,
   apiBaseUrl: 'https://api.chalkscore.app',
   auth0: {
     domain: 'YOUR_PROD_AUTH0_DOMAIN',

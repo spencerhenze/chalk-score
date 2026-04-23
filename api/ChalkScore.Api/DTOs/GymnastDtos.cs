@@ -24,6 +24,14 @@ public record GymnastResponse(
     DateTime CreatedAt
 );
 
+public record ImportGymnastsResponse(
+    int Imported,
+    int Skipped,
+    List<ImportRowError> Errors
+);
+
+public record ImportRowError(int Row, string Reason);
+
 public record GymnastHistoryEntry(
     Guid TestSessionGymnastId,
     string SessionName,

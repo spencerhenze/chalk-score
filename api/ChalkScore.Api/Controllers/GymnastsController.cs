@@ -52,6 +52,78 @@ public class GymnastsController(AppDbContext db) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = gymnast.Id }, ToResponse(gymnast));
     }
 
+    [HttpPost("import")]
+    [Authorize(Policy = "CoachOnly")]
+    public async Task<IActionResult> Import(IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "No file provided." });
+
+        var errors = new List<ImportRowError>();
+        var toInsert = new List<Gymnast>();
+        var skipped = 0;
+
+        using var reader = new System.IO.StreamReader(file.OpenReadStream());
+        var header = await reader.ReadLineAsync();
+        if (header is null) return BadRequest(new { error = "File is empty." });
+
+        // Resolve column indices from header (case-insensitive)
+        var cols = header.Split(',').Select(h => h.Trim().ToLowerInvariant()).ToList();
+        var firstIdx  = cols.IndexOf("firstname");
+        var lastIdx   = cols.IndexOf("lastname");
+        var levelIdx  = cols.IndexOf("level");
+
+        if (firstIdx < 0 || lastIdx < 0 || levelIdx < 0)
+            return BadRequest(new { error = "CSV must have firstName, lastName, and level columns." });
+
+        var row = 1;
+        string? line;
+        while ((line = await reader.ReadLineAsync()) is not null)
+        {
+            row++;
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            var parts = line.Split(',');
+            if (parts.Length <= Math.Max(firstIdx, Math.Max(lastIdx, levelIdx)))
+            {
+                errors.Add(new ImportRowError(row, "Not enough columns."));
+                continue;
+            }
+
+            var firstName = parts[firstIdx].Trim();
+            var lastName  = parts[lastIdx].Trim();
+            var levelStr  = parts[levelIdx].Trim();
+
+            if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
+            {
+                errors.Add(new ImportRowError(row, "First and last name are required."));
+                continue;
+            }
+
+            if (!int.TryParse(levelStr, out var level) || level < 1 || level > 10)
+            {
+                errors.Add(new ImportRowError(row, $"Level must be a number between 1 and 10."));
+                continue;
+            }
+
+            var isDuplicate = await db.Gymnasts.AnyAsync(g =>
+                g.FirstName == firstName && g.LastName == lastName && g.Level == level);
+
+            if (isDuplicate)
+            {
+                skipped++;
+                continue;
+            }
+
+            toInsert.Add(new Gymnast { FirstName = firstName, LastName = lastName, Level = level });
+        }
+
+        db.Gymnasts.AddRange(toInsert);
+        await db.SaveChangesAsync();
+
+        return Ok(new ImportGymnastsResponse(toInsert.Count, skipped, errors));
+    }
+
     [HttpPut("{id:guid}")]
     [Authorize(Policy = "CoachOnly")]
     public async Task<IActionResult> Update(Guid id, UpdateGymnastRequest request)

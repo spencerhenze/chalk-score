@@ -64,6 +64,29 @@
               "sourceMap": true,
               "namedChunks": true
             },
+            "dev": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ]
+            },
+            "staging": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.staging.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
             "ci": {
               "progress": false
             }
@@ -78,6 +101,12 @@
             },
             "development": {
               "buildTarget": "app:build:development"
+            },
+            "dev": {
+              "buildTarget": "app:build:dev"
+            },
+            "staging": {
+              "buildTarget": "app:build:staging"
             },
             "ci": {
               "progress": false
@@ -136,7 +165,8 @@
   "cli": {
     "schematicCollections": [
       "@ionic/angular-toolkit"
-    ]
+    ],
+    "analytics": false
   },
   "schematics": {
     "@ionic/angular-toolkit:component": {

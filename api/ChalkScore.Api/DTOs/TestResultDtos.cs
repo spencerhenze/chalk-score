@@ -15,8 +15,8 @@ public record ExerciseResultResponse(
     Guid ExerciseId,
     string ExerciseName,
     string Unit,
-    decimal RawValue,
-    decimal CalculatedScore,
+    decimal? RawValue,
+    decimal? CalculatedScore,
     decimal Weight,
     string ScoringType,
     decimal MaxValue

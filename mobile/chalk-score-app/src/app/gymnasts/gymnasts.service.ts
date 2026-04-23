@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../core/services/api.service';
-import { Gymnast, CreateGymnastRequest, UpdateGymnastRequest } from './gymnast.model';
+import { Gymnast, CreateGymnastRequest, UpdateGymnastRequest, ImportResult } from './gymnast.model';
 
 @Injectable({ providedIn: 'root' })
 export class GymnastsService {
@@ -21,5 +21,11 @@ export class GymnastsService {
 
   delete(id: string): Observable<void> {
     return this.api.delete<void>(`gymnasts/${id}`);
+  }
+
+  importCsv(file: File): Observable<ImportResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.api.upload<ImportResult>('gymnasts/import', formData);
   }
 }

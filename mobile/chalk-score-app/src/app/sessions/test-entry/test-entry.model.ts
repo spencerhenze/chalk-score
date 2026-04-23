@@ -2,8 +2,8 @@ export interface ExerciseResult {
   exerciseId: string;
   exerciseName: string;
   unit: string;
-  rawValue: number;
-  calculatedScore: number;
+  rawValue: number | null;
+  calculatedScore: number | null;
   weight: number;
   scoringType: string;
   maxValue: number;

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { GymnastsService } from './gymnasts.service';
 import { Gymnast } from './gymnast.model';
@@ -10,9 +10,12 @@ import { GymnastFormComponent } from './gymnast-form/gymnast-form.component';
   standalone: false,
 })
 export class GymnastsPage implements OnInit {
+  @ViewChild('csvInput') csvInput!: ElementRef<HTMLInputElement>;
+
   gymnasts: Gymnast[] = [];
   filtered: Gymnast[] = [];
   loading = false;
+  importing = false;
   searchTerm = '';
 
   constructor(
@@ -104,6 +107,42 @@ export class GymnastsPage implements OnInit {
       ],
     });
     await a.present();
+  }
+
+  triggerImport() {
+    this.csvInput.nativeElement.value = '';
+    this.csvInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    this.importing = true;
+    this.service.importCsv(file).subscribe({
+      next: async result => {
+        this.importing = false;
+        this.load();
+
+        if (result.errors.length > 0) {
+          const errorLines = result.errors.map(e => `Row ${e.row}: ${e.reason}`).join('<br>');
+          const a = await this.alert.create({
+            header: 'Import Complete',
+            message: `${result.imported} imported, ${result.skipped} skipped.<br><br><strong>Row errors:</strong><br>${errorLines}`,
+            buttons: ['OK'],
+          });
+          await a.present();
+        } else {
+          const parts = [`${result.imported} gymnast${result.imported !== 1 ? 's' : ''} imported`];
+          if (result.skipped > 0) parts.push(`${result.skipped} skipped`);
+          this.showToast(parts.join(', '));
+        }
+      },
+      error: () => {
+        this.importing = false;
+        this.showToast('Failed to import CSV', 'danger');
+      },
+    });
   }
 
   private async showToast(message: string, color = 'success') {

@@ -8,6 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("LocalDev", policy =>
+        policy.WithOrigins("http://localhost:8100")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
 // PostgreSQL via EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -39,6 +47,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
 app.UseHttpsRedirection();
+app.UseCors("LocalDev");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

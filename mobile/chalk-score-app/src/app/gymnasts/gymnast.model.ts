@@ -19,3 +19,9 @@ export interface UpdateGymnastRequest {
   level: number;
   imageUrl: string | null;
 }
+
+export interface ImportResult {
+  imported: number;
+  skipped: number;
+  errors: { row: number; reason: string }[];
+}

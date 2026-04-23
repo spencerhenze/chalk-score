@@ -127,8 +127,8 @@ public class TestResultsController(AppDbContext db) : ControllerBase
                 c.ExerciseId,
                 c.Exercise.Name,
                 c.Exercise.Unit,
-                result?.RawValue ?? 0,
-                result?.CalculatedScore ?? 0,
+                result?.RawValue,
+                result?.CalculatedScore,
                 c.Weight,
                 c.ScoringType.ToString(),
                 c.MaxValue

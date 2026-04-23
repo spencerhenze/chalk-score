@@ -2,11 +2,16 @@
   <ion-toolbar>
     <ion-title>Gymnasts</ion-title>
     <ion-buttons slot="end">
+      <ion-button (click)="triggerImport()" [disabled]="importing">
+        <ion-spinner *ngIf="importing" name="crescent" slot="icon-only"></ion-spinner>
+        <ion-icon *ngIf="!importing" slot="icon-only" name="document-outline"></ion-icon>
+      </ion-button>
       <ion-button (click)="openAdd()">
         <ion-icon slot="icon-only" name="add-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+  <input #csvInput type="file" accept=".csv" style="display:none" (change)="onFileSelected($event)">
   <ion-toolbar>
     <ion-searchbar
       placeholder="Search gymnasts"

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '@auth0/auth0-angular';
 import { Browser } from '@capacitor/browser';
 import { filter, take } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-callback',
@@ -13,7 +14,9 @@ export class CallbackPage implements OnInit {
   constructor(private auth: AuthService, private router: Router) {}
 
   ngOnInit() {
-    Browser.close();
+    if (environment.nativeBrowser) {
+      Browser.close();
+    }
 
     this.auth.isAuthenticated$.pipe(
       filter(Boolean),
