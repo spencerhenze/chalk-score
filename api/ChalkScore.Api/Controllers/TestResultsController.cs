@@ -108,6 +108,7 @@ public class TestResultsController(AppDbContext db) : ControllerBase
     private async Task<TestEntryResponse> BuildResponse(TestSessionGymnast entry)
     {
         await db.Entry(entry).Reference(e => e.Gymnast).LoadAsync();
+        await db.Entry(entry.Gymnast).Reference(g => g.Level).LoadAsync();
         await db.Entry(entry).Reference(e => e.TestConfiguration).LoadAsync();
 
         var configs = await db.TestConfigurationExercises
@@ -140,7 +141,7 @@ public class TestResultsController(AppDbContext db) : ControllerBase
             entry.GymnastId,
             entry.Gymnast.FirstName,
             entry.Gymnast.LastName,
-            entry.Gymnast.Level,
+            entry.Gymnast.Level.Name,
             entry.TestConfiguration.Name,
             entry.IsCompleted,
             entry.FinalScore,

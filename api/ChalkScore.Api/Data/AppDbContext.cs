@@ -7,6 +7,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<Gymnast> Gymnasts => Set<Gymnast>();
+    public DbSet<GymnastLevel> GymnastLevels => Set<GymnastLevel>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
     public DbSet<TestConfiguration> TestConfigurations => Set<TestConfiguration>();
     public DbSet<TestConfigurationExercise> TestConfigurationExercises => Set<TestConfigurationExercise>();
@@ -16,6 +17,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<GymnastLevel>()
+            .HasMany(l => l.Gymnasts)
+            .WithOne(g => g.Level)
+            .HasForeignKey(g => g.LevelId);
+
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Auth0Id).IsUnique();
 

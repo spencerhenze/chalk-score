@@ -5,13 +5,13 @@ namespace ChalkScore.Api.DTOs;
 public record CreateGymnastRequest(
     [Required] string FirstName,
     [Required] string LastName,
-    [Required, Range(1, 10)] int Level
+    [Required] string Level
 );
 
 public record UpdateGymnastRequest(
     [Required] string FirstName,
     [Required] string LastName,
-    [Required, Range(1, 10)] int Level,
+    [Required] string Level,
     string? ImageUrl
 );
 
@@ -19,7 +19,8 @@ public record GymnastResponse(
     Guid Id,
     string FirstName,
     string LastName,
-    int Level,
+    string Level,
+    int LevelSortOrder,
     string? ImageUrl,
     DateTime CreatedAt
 );

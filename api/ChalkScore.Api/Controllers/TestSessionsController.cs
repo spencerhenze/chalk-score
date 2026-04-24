@@ -97,7 +97,7 @@ public class TestSessionsController(AppDbContext db) : ControllerBase
                 tsg.GymnastId,
                 tsg.Gymnast.FirstName,
                 tsg.Gymnast.LastName,
-                tsg.Gymnast.Level,
+                tsg.Gymnast.Level.Name,
                 tsg.TestConfiguration.Name,
                 tsg.IsCompleted,
                 tsg.FinalScore
@@ -160,7 +160,7 @@ public class TestSessionsController(AppDbContext db) : ControllerBase
                 tsg.GymnastId,
                 tsg.Gymnast.FirstName,
                 tsg.Gymnast.LastName,
-                tsg.Gymnast.Level,
+                tsg.Gymnast.Level.Name,
                 tsg.TestConfiguration.Name,
                 tsg.IsCompleted,
                 tsg.FinalScore

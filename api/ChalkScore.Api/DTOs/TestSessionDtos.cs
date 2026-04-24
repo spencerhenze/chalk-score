@@ -30,7 +30,7 @@ public record TestSessionGymnastResponse(
     Guid GymnastId,
     string FirstName,
     string LastName,
-    int Level,
+    string Level,
     string TestConfigurationName,
     bool IsCompleted,
     decimal? FinalScore

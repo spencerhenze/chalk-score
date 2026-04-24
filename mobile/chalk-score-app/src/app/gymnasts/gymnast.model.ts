@@ -2,7 +2,8 @@ export interface Gymnast {
   id: string;
   firstName: string;
   lastName: string;
-  level: number;
+  level: string;
+  levelSortOrder: number;
   imageUrl: string | null;
   createdAt: string;
 }

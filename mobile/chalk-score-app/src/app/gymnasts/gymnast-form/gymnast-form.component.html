@@ -36,8 +36,8 @@
       </ion-item>
 
       <ion-item>
-        <ion-select formControlName="level" label="Level" labelPlacement="stacked">
-          <ion-select-option *ngFor="let l of levels" [value]="l">Level {{ l }}</ion-select-option>
+        <ion-select formControlName="level" label="Level" labelPlacement="stacked" placeholder="Select level">
+          <ion-select-option *ngFor="let l of levels" [value]="l.value">{{ l.name }}</ion-select-option>
         </ion-select>
       </ion-item>
     </ion-list>

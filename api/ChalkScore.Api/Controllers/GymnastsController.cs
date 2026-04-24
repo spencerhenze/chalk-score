@@ -15,12 +15,12 @@ public class GymnastsController(AppDbContext db) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? sort = "lastName")
     {
-        var query = db.Gymnasts.AsQueryable();
+        var query = db.Gymnasts.Include(g => g.Level).AsQueryable();
 
         query = sort switch
         {
             "firstName" => query.OrderBy(g => g.FirstName).ThenBy(g => g.LastName),
-            "level"     => query.OrderBy(g => g.Level).ThenBy(g => g.LastName),
+            "level"     => query.OrderBy(g => g.Level.SortOrder).ThenBy(g => g.LastName),
             _           => query.OrderBy(g => g.LastName).ThenBy(g => g.FirstName),
         };
 
@@ -31,7 +31,7 @@ public class GymnastsController(AppDbContext db) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var gymnast = await db.Gymnasts.FindAsync(id);
+        var gymnast = await db.Gymnasts.Include(g => g.Level).FirstOrDefaultAsync(g => g.Id == id);
         return gymnast is null ? NotFound() : Ok(ToResponse(gymnast));
     }
 
@@ -39,16 +39,21 @@ public class GymnastsController(AppDbContext db) : ControllerBase
     [Authorize(Policy = "CoachOnly")]
     public async Task<IActionResult> Create(CreateGymnastRequest request)
     {
+        var level = await db.GymnastLevels.FirstOrDefaultAsync(l => l.Name == request.Level);
+        if (level is null)
+            return BadRequest(new { error = $"Invalid level \"{request.Level}\"." });
+
         var gymnast = new Gymnast
         {
             FirstName = request.FirstName.Trim(),
             LastName  = request.LastName.Trim(),
-            Level     = request.Level,
+            LevelId   = level.Id,
         };
 
         db.Gymnasts.Add(gymnast);
         await db.SaveChangesAsync();
 
+        gymnast.Level = level;
         return CreatedAtAction(nameof(GetById), new { id = gymnast.Id }, ToResponse(gymnast));
     }
 
@@ -59,6 +64,7 @@ public class GymnastsController(AppDbContext db) : ControllerBase
         if (file is null || file.Length == 0)
             return BadRequest(new { error = "No file provided." });
 
+        var levels = await db.GymnastLevels.ToDictionaryAsync(l => l.Name, l => l);
         var errors = new List<ImportRowError>();
         var toInsert = new List<Gymnast>();
         var skipped = 0;
@@ -67,11 +73,10 @@ public class GymnastsController(AppDbContext db) : ControllerBase
         var header = await reader.ReadLineAsync();
         if (header is null) return BadRequest(new { error = "File is empty." });
 
-        // Resolve column indices from header (case-insensitive)
         var cols = header.Split(',').Select(h => h.Trim().ToLowerInvariant()).ToList();
-        var firstIdx  = cols.IndexOf("firstname");
-        var lastIdx   = cols.IndexOf("lastname");
-        var levelIdx  = cols.IndexOf("level");
+        var firstIdx = cols.IndexOf("firstname");
+        var lastIdx  = cols.IndexOf("lastname");
+        var levelIdx = cols.IndexOf("level");
 
         if (firstIdx < 0 || lastIdx < 0 || levelIdx < 0)
             return BadRequest(new { error = "CSV must have firstName, lastName, and level columns." });
@@ -100,14 +105,14 @@ public class GymnastsController(AppDbContext db) : ControllerBase
                 continue;
             }
 
-            if (!int.TryParse(levelStr, out var level) || level < 1 || level > 10)
+            if (!levels.TryGetValue(levelStr, out var level))
             {
-                errors.Add(new ImportRowError(row, $"Level must be a number between 1 and 10."));
+                errors.Add(new ImportRowError(row, $"Invalid level \"{levelStr}\". Allowed: {string.Join(", ", levels.Keys)}."));
                 continue;
             }
 
             var isDuplicate = await db.Gymnasts.AnyAsync(g =>
-                g.FirstName == firstName && g.LastName == lastName && g.Level == level);
+                g.FirstName == firstName && g.LastName == lastName && g.LevelId == level.Id);
 
             if (isDuplicate)
             {
@@ -115,7 +120,7 @@ public class GymnastsController(AppDbContext db) : ControllerBase
                 continue;
             }
 
-            toInsert.Add(new Gymnast { FirstName = firstName, LastName = lastName, Level = level });
+            toInsert.Add(new Gymnast { FirstName = firstName, LastName = lastName, LevelId = level.Id });
         }
 
         db.Gymnasts.AddRange(toInsert);
@@ -128,12 +133,17 @@ public class GymnastsController(AppDbContext db) : ControllerBase
     [Authorize(Policy = "CoachOnly")]
     public async Task<IActionResult> Update(Guid id, UpdateGymnastRequest request)
     {
-        var gymnast = await db.Gymnasts.FindAsync(id);
+        var level = await db.GymnastLevels.FirstOrDefaultAsync(l => l.Name == request.Level);
+        if (level is null)
+            return BadRequest(new { error = $"Invalid level \"{request.Level}\"." });
+
+        var gymnast = await db.Gymnasts.Include(g => g.Level).FirstOrDefaultAsync(g => g.Id == id);
         if (gymnast is null) return NotFound();
 
         gymnast.FirstName = request.FirstName.Trim();
         gymnast.LastName  = request.LastName.Trim();
-        gymnast.Level     = request.Level;
+        gymnast.LevelId   = level.Id;
+        gymnast.Level     = level;
         gymnast.ImageUrl  = request.ImageUrl;
 
         await db.SaveChangesAsync();
@@ -176,5 +186,5 @@ public class GymnastsController(AppDbContext db) : ControllerBase
     }
 
     private static GymnastResponse ToResponse(Gymnast g) =>
-        new(g.Id, g.FirstName, g.LastName, g.Level, g.ImageUrl, g.CreatedAt);
+        new(g.Id, g.FirstName, g.LastName, g.Level.Name, g.Level.SortOrder, g.ImageUrl, g.CreatedAt);
 }
