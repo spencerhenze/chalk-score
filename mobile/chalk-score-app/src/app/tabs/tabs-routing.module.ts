@@ -20,6 +20,10 @@ const routes: Routes = [
         loadChildren: () => import('../results/results.module').then(m => m.ResultsPageModule),
       },
       {
+        path: 'profile',
+        loadChildren: () => import('../profile/profile.module').then(m => m.ProfilePageModule),
+      },
+      {
         path: '',
         redirectTo: '/tabs/gymnasts',
         pathMatch: 'full',

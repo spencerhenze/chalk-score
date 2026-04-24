@@ -1,5 +1,13 @@
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goToProfile()" class="profile-btn">
+        <ion-avatar slot="icon-only" class="header-avatar">
+          <img *ngIf="profilePicture" [src]="profilePicture" alt="Profile">
+          <ion-icon *ngIf="!profilePicture" name="person-circle-outline" class="person-icon"></ion-icon>
+        </ion-avatar>
+      </ion-button>
+    </ion-buttons>
     <ion-title>Gymnasts</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="triggerImport()" [disabled]="importing">

@@ -7,7 +7,10 @@ namespace ChalkScore.Api.Services;
 
 public class UserSyncService(AppDbContext db)
 {
-    private const string RoleClaimType = "https://chalkscore.app/roles";
+    private const string RoleClaimType       = "https://chalkscore.app/roles";
+    private const string EmailClaimType      = "https://chalkscore.app/email";
+    private const string GivenNameClaimType  = "https://chalkscore.app/given_name";
+    private const string FamilyNameClaimType = "https://chalkscore.app/family_name";
 
     public async Task<User> SyncAsync(ClaimsPrincipal principal)
     {
@@ -21,11 +24,11 @@ public class UserSyncService(AppDbContext db)
         {
             user = new User
             {
-                Auth0Id = auth0Id,
-                Email = principal.FindFirstValue(ClaimTypes.Email) ?? principal.FindFirstValue("email") ?? "",
-                FirstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? "",
-                LastName = principal.FindFirstValue(ClaimTypes.Surname) ?? "",
-                Role = ResolveRole(principal),
+                Auth0Id   = auth0Id,
+                Email     = principal.FindFirstValue(EmailClaimType) ?? "",
+                FirstName = principal.FindFirstValue(GivenNameClaimType) ?? "",
+                LastName  = principal.FindFirstValue(FamilyNameClaimType) ?? "",
+                Role      = ResolveRole(principal),
             };
             db.Users.Add(user);
             await db.SaveChangesAsync();

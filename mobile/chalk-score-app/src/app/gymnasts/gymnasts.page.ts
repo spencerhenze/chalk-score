@@ -1,5 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { AuthService } from '@auth0/auth0-angular';
 import { GymnastsService } from './gymnasts.service';
 import { Gymnast } from './gymnast.model';
 import { GymnastFormComponent } from './gymnast-form/gymnast-form.component';
@@ -7,6 +9,7 @@ import { GymnastFormComponent } from './gymnast-form/gymnast-form.component';
 @Component({
   selector: 'app-gymnasts',
   templateUrl: './gymnasts.page.html',
+  styleUrls: ['./gymnasts.page.scss'],
   standalone: false,
 })
 export class GymnastsPage implements OnInit {
@@ -17,15 +20,21 @@ export class GymnastsPage implements OnInit {
   loading = false;
   importing = false;
   searchTerm = '';
+  profilePicture: string | null = null;
 
   constructor(
     private service: GymnastsService,
     private modal: ModalController,
     private alert: AlertController,
     private toast: ToastController,
+    private router: Router,
+    public auth: AuthService,
   ) {}
 
   ngOnInit() {
+    this.auth.user$.subscribe(user => {
+      this.profilePicture = user?.picture ?? null;
+    });
     this.load();
   }
 
@@ -107,6 +116,10 @@ export class GymnastsPage implements OnInit {
       ],
     });
     await a.present();
+  }
+
+  goToProfile() {
+    this.router.navigate(['/tabs/profile']);
   }
 
   triggerImport() {
