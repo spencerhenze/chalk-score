@@ -94,9 +94,8 @@ jobs:
             ENV_SLUG="dev"
           fi
           echo "ENV_SLUG=$ENV_SLUG"                                >> $GITHUB_ENV
-          echo "RESOURCE_GROUP=chalkscore-$ENV_SLUG"              >> $GITHUB_ENV
-          echo "CONTAINER_ENV=chalkscore-env-dev"                  >> $GITHUB_ENV
-          echo "CONTAINER_ENV_RG=chalkscore-dev"                  >> $GITHUB_ENV
+          echo "RESOURCE_GROUP=chalkscore-dev"                    >> $GITHUB_ENV
+          echo "CONTAINER_ENV=chalkscore-env-dev"                 >> $GITHUB_ENV
           echo "APP_NAME=chalkscore-api-$ENV_SLUG"                >> $GITHUB_ENV
           echo "IMAGE=${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image_tag }}" >> $GITHUB_ENV
 
@@ -156,7 +155,7 @@ jobs:
             az containerapp create \
               --name $APP_NAME \
               --resource-group $RESOURCE_GROUP \
-              --environment /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/$CONTAINER_ENV_RG/providers/Microsoft.App/managedEnvironments/$CONTAINER_ENV \
+              --environment $CONTAINER_ENV \
               --image $IMAGE \
               --target-port 8080 \
               --ingress external \
