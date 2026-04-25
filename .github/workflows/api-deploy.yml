@@ -95,7 +95,7 @@ jobs:
           fi
           echo "ENV_SLUG=$ENV_SLUG"                                >> $GITHUB_ENV
           echo "RESOURCE_GROUP=chalkscore-$ENV_SLUG"              >> $GITHUB_ENV
-          echo "CONTAINER_ENV=chalkscore-env"                     >> $GITHUB_ENV
+          echo "CONTAINER_ENV=chalkscore-env-dev"                  >> $GITHUB_ENV
           echo "CONTAINER_ENV_RG=chalkscore-dev"                  >> $GITHUB_ENV
           echo "APP_NAME=chalkscore-api-$ENV_SLUG"                >> $GITHUB_ENV
           echo "IMAGE=${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image_tag }}" >> $GITHUB_ENV
