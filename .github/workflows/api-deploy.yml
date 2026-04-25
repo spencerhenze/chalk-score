@@ -156,7 +156,8 @@ jobs:
             az containerapp create \
               --name $APP_NAME \
               --resource-group $RESOURCE_GROUP \
-              --environment $CONTAINER_ENV_RG/$CONTAINER_ENV \
+              --environment $CONTAINER_ENV \
+              --environment-resource-group $CONTAINER_ENV_RG \
               --image $IMAGE \
               --target-port 8080 \
               --ingress external \
