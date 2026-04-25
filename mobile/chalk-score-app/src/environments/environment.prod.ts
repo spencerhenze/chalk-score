@@ -3,8 +3,8 @@ export const environment = {
   nativeBrowser: true,
   apiBaseUrl: 'https://api.chalkscore.app',
   auth0: {
-    domain: 'YOUR_PROD_AUTH0_DOMAIN',
-    clientId: 'YOUR_PROD_AUTH0_CLIENT_ID',
+    domain: 'dev-j8ogpjbtpk0l1vs3.us.auth0.com',
+    clientId: 'pHJICk0ASSH733bObtqMwgffOBZxvmYk',
     audience: 'https://chalkscore-api',
     redirectUri: 'com.chalkscore.app://callback',
   },
