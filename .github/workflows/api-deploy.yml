@@ -156,8 +156,7 @@ jobs:
             az containerapp create \
               --name $APP_NAME \
               --resource-group $RESOURCE_GROUP \
-              --environment $CONTAINER_ENV \
-              --environment-resource-group $CONTAINER_ENV_RG \
+              --environment /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/$CONTAINER_ENV_RG/providers/Microsoft.App/managedEnvironments/$CONTAINER_ENV \
               --image $IMAGE \
               --target-port 8080 \
               --ingress external \
