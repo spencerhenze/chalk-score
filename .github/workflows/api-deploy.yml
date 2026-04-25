@@ -95,7 +95,8 @@ jobs:
           fi
           echo "ENV_SLUG=$ENV_SLUG"                                >> $GITHUB_ENV
           echo "RESOURCE_GROUP=chalkscore-$ENV_SLUG"              >> $GITHUB_ENV
-          echo "CONTAINER_ENV=chalkscore-env-$ENV_SLUG"           >> $GITHUB_ENV
+          echo "CONTAINER_ENV=chalkscore-env"                     >> $GITHUB_ENV
+          echo "CONTAINER_ENV_RG=chalkscore-dev"                  >> $GITHUB_ENV
           echo "APP_NAME=chalkscore-api-$ENV_SLUG"                >> $GITHUB_ENV
           echo "IMAGE=${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image_tag }}" >> $GITHUB_ENV
 
@@ -133,10 +134,10 @@ jobs:
 
       - name: Ensure Container Apps environment
         run: |
-          if ! az containerapp env show --name $CONTAINER_ENV --resource-group $RESOURCE_GROUP &>/dev/null; then
+          if ! az containerapp env show --name $CONTAINER_ENV --resource-group $CONTAINER_ENV_RG &>/dev/null; then
             az containerapp env create \
               --name $CONTAINER_ENV \
-              --resource-group $RESOURCE_GROUP \
+              --resource-group $CONTAINER_ENV_RG \
               --location ${{ env.AZURE_LOCATION }} \
               --output none
           fi
@@ -155,7 +156,7 @@ jobs:
             az containerapp create \
               --name $APP_NAME \
               --resource-group $RESOURCE_GROUP \
-              --environment $CONTAINER_ENV \
+              --environment $CONTAINER_ENV_RG/$CONTAINER_ENV \
               --image $IMAGE \
               --target-port 8080 \
               --ingress external \
