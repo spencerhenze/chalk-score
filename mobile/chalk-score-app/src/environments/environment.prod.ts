@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   nativeBrowser: true,
-  apiBaseUrl: 'https://api.chalkscore.app',
+  apiBaseUrl: 'https://chalkscore-api-prod.redriver-a286779e.eastus2.azurecontainerapps.io',
   auth0: {
     domain: 'dev-j8ogpjbtpk0l1vs3.us.auth0.com',
     clientId: 'pHJICk0ASSH733bObtqMwgffOBZxvmYk',
