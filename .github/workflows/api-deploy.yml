@@ -133,10 +133,10 @@ jobs:
 
       - name: Ensure Container Apps environment
         run: |
-          if ! az containerapp env show --name $CONTAINER_ENV --resource-group $CONTAINER_ENV_RG &>/dev/null; then
+          if ! az containerapp env show --name $CONTAINER_ENV --resource-group $RESOURCE_GROUP &>/dev/null; then
             az containerapp env create \
               --name $CONTAINER_ENV \
-              --resource-group $CONTAINER_ENV_RG \
+              --resource-group $RESOURCE_GROUP \
               --location ${{ env.AZURE_LOCATION }} \
               --output none
           fi
