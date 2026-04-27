@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
+import { RoleGuard } from './core/guards/role.guard';
 
 const routes: Routes = [
   {
@@ -17,8 +18,13 @@ const routes: Routes = [
     loadChildren: () => import('./auth/callback/callback.module').then(m => m.CallbackPageModule),
   },
   {
-    path: 'tabs',
+    path: 'pending',
     canActivate: [AuthGuard],
+    loadChildren: () => import('./pending/pending.module').then(m => m.PendingPageModule),
+  },
+  {
+    path: 'tabs',
+    canActivate: [RoleGuard],
     loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule),
   },
 ];

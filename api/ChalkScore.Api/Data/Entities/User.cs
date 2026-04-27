@@ -1,6 +1,6 @@
 namespace ChalkScore.Api.Data.Entities;
 
-public enum UserRole { Coach, Staff }
+public enum UserRole { Coach = 0, Staff = 1, Pending = 2 }
 
 public class User
 {

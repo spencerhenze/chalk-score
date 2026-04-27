@@ -150,6 +150,13 @@ jobs:
               --name $APP_NAME \
               --resource-group $RESOURCE_GROUP \
               --image $IMAGE \
+              --set-env-vars \
+                "ConnectionStrings__DefaultConnection=$NPGSQL" \
+                "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
+                "Auth0__Audience=${{ secrets.AUTH0_AUDIENCE }}" \
+                "Auth0__ManagementClientId=${{ secrets.AUTH0_MANAGEMENT_CLIENT_ID }}" \
+                "Auth0__ManagementClientSecret=${{ secrets.AUTH0_MANAGEMENT_CLIENT_SECRET }}" \
+                "Auth0__StaffRoleId=${{ secrets.AUTH0_STAFF_ROLE_ID }}" \
               --output none
           else
             az containerapp create \
@@ -168,6 +175,9 @@ jobs:
                 "ConnectionStrings__DefaultConnection=$NPGSQL" \
                 "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
                 "Auth0__Audience=${{ secrets.AUTH0_AUDIENCE }}" \
+                "Auth0__ManagementClientId=${{ secrets.AUTH0_MANAGEMENT_CLIENT_ID }}" \
+                "Auth0__ManagementClientSecret=${{ secrets.AUTH0_MANAGEMENT_CLIENT_SECRET }}" \
+                "Auth0__StaffRoleId=${{ secrets.AUTH0_STAFF_ROLE_ID }}" \
               --output none
           fi
         env:

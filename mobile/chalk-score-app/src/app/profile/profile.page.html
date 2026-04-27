@@ -42,6 +42,9 @@
     </ion-list>
 
     <div class="ion-padding ion-margin-top">
+      <ion-button *ngIf="profile.role === 'Coach'" expand="block" fill="outline" (click)="manageUsers()" class="ion-margin-bottom">
+        Manage Users
+      </ion-button>
       <ion-button expand="block" fill="outline" color="danger" (click)="logout()">
         Sign Out
       </ion-button>

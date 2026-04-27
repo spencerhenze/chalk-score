@@ -1,0 +1,20 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Awaiting Approval</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="pending-container">
+    <ion-icon name="time-outline" class="pending-icon"></ion-icon>
+    <h2>Approval Pending</h2>
+    <p>Your account has been created. A coach will review and approve your access shortly.</p>
+    <ion-button expand="block" (click)="checkForApproval()" [disabled]="checking" class="ion-margin-top">
+      <ion-spinner *ngIf="checking" name="crescent" slot="start"></ion-spinner>
+      Check for Approval
+    </ion-button>
+    <ion-button expand="block" fill="outline" color="medium" (click)="logout()" class="ion-margin-top">
+      Sign Out
+    </ion-button>
+  </div>
+</ion-content>

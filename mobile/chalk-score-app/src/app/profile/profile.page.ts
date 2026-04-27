@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '@auth0/auth0-angular';
 import { Browser } from '@capacitor/browser';
 import { ToastController } from '@ionic/angular';
@@ -20,6 +21,7 @@ export class ProfilePage implements OnInit {
     private service: ProfileService,
     public auth: AuthService,
     private toast: ToastController,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -40,7 +42,12 @@ export class ProfilePage implements OnInit {
     });
   }
 
+  manageUsers() {
+    this.router.navigate(['/tabs/admin']);
+  }
+
   logout() {
+    this.service.clearCache();
     if (environment.nativeBrowser) {
       this.auth.logout({
         async openUrl(url) {

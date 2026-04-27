@@ -39,7 +39,9 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser());
 });
 
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<UserSyncService>();
+builder.Services.AddScoped<Auth0ManagementService>();
 
 var app = builder.Build();
 

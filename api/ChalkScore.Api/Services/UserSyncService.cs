@@ -40,6 +40,8 @@ public class UserSyncService(AppDbContext db)
     private static UserRole ResolveRole(ClaimsPrincipal principal)
     {
         var roles = principal.FindAll(RoleClaimType).Select(c => c.Value);
-        return roles.Contains("Coach") ? UserRole.Coach : UserRole.Staff;
+        if (roles.Contains("Coach")) return UserRole.Coach;
+        if (roles.Contains("Staff")) return UserRole.Staff;
+        return UserRole.Pending;
     }
 }
