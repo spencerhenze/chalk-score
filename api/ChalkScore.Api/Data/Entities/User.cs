@@ -12,4 +12,7 @@ public class User
     public UserRole Role { get; set; } = UserRole.Staff;
     public bool IsAdmin { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+    public Guid? UpdatedById { get; set; }
+    public User? UpdatedBy { get; set; }
 }

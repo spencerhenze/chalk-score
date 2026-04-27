@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { AuthService } from '@auth0/auth0-angular';
 import { Browser } from '@capacitor/browser';
 import { ToastController } from '@ionic/angular';
-import { switchMap } from 'rxjs/operators';
 import { ProfileService } from '../profile/profile.service';
 import { environment } from '../../environments/environment';
 
@@ -24,9 +23,7 @@ export class PendingPage {
 
   checkForApproval() {
     this.checking = true;
-    this.auth.getAccessTokenSilently({ cacheMode: 'off' }).pipe(
-      switchMap(() => this.profile.refresh()),
-    ).subscribe({
+    this.profile.refresh().subscribe({
       next: p => {
         this.checking = false;
         if (p.role !== 'Pending') {

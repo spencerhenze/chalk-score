@@ -18,17 +18,44 @@
   </div>
 
   <ng-container *ngIf="!loading">
+    <ion-list-header>
+      <ion-label>Pending Approval</ion-label>
+    </ion-list-header>
     <ion-list *ngIf="pendingUsers.length > 0">
-      <ion-item *ngFor="let user of pendingUsers">
-        <ion-label>
-          <h3>{{ user.firstName }} {{ user.lastName }}</h3>
-          <p>{{ user.email }}</p>
-        </ion-label>
-        <ion-button slot="end" (click)="approve(user)">Approve</ion-button>
-      </ion-item>
+      <ion-item-sliding *ngFor="let user of pendingUsers">
+        <ion-item>
+          <ion-label>
+            <h3>{{ user.firstName }} {{ user.lastName }}</h3>
+            <p>{{ user.email }}</p>
+          </ion-label>
+          <ion-button slot="end" (click)="approve(user)">Approve</ion-button>
+        </ion-item>
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="deleteUser(user)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
     </ion-list>
     <div *ngIf="pendingUsers.length === 0" class="ion-padding ion-text-center">
       <p>No users awaiting approval.</p>
+    </div>
+
+    <ion-list-header class="ion-margin-top">
+      <ion-label>Staff</ion-label>
+    </ion-list-header>
+    <ion-list *ngIf="staffUsers.length > 0">
+      <ion-item *ngFor="let user of staffUsers">
+        <ion-label>
+          <h3>{{ user.firstName }} {{ user.lastName }}</h3>
+          <p>{{ user.email }}</p>
+          <p *ngIf="user.updatedByName">Last updated by {{ user.updatedByName }}</p>
+        </ion-label>
+        <ion-button slot="end" fill="outline" color="danger" (click)="revoke(user)">Revoke</ion-button>
+      </ion-item>
+    </ion-list>
+    <div *ngIf="staffUsers.length === 0" class="ion-padding ion-text-center">
+      <p>No staff users.</p>
     </div>
   </ng-container>
 </ion-content>

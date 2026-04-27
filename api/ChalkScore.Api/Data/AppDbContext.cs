@@ -28,6 +28,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email).IsUnique();
 
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.UpdatedBy)
+            .WithMany()
+            .HasForeignKey(u => u.UpdatedById)
+            .OnDelete(DeleteBehavior.SetNull);
+
         modelBuilder.Entity<TestConfigurationExercise>()
             .HasOne(e => e.TestConfiguration)
             .WithMany(tc => tc.Exercises)

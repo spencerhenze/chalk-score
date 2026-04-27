@@ -10,19 +10,37 @@ public class Auth0ManagementService(IHttpClientFactory httpClientFactory, IConfi
     private readonly string _clientSecret = config["Auth0:ManagementClientSecret"]!;
     private readonly string _staffRoleId = config["Auth0:StaffRoleId"]!;
 
-    public async Task AssignStaffRoleAsync(string auth0UserId)
+    public async Task AssignStaffRoleAsync(string auth0UserId) =>
+        await SendRoleRequestAsync(HttpMethod.Post, auth0UserId);
+
+    public async Task RemoveStaffRoleAsync(string auth0UserId) =>
+        await SendRoleRequestAsync(HttpMethod.Delete, auth0UserId);
+
+    public async Task DeleteUserAsync(string auth0UserId)
+    {
+        var token = await GetManagementTokenAsync();
+        var client = httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.DeleteAsync(
+            $"https://{_domain}/api/v2/users/{Uri.EscapeDataString(auth0UserId)}");
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    private async Task SendRoleRequestAsync(HttpMethod method, string auth0UserId)
     {
         var token = await GetManagementTokenAsync();
         var client = httpClientFactory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var body = JsonSerializer.Serialize(new { roles = new[] { _staffRoleId } });
-        var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
+        var request = new HttpRequestMessage(method, $"https://{_domain}/api/v2/users/{Uri.EscapeDataString(auth0UserId)}/roles")
+        {
+            Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json"),
+        };
 
-        var response = await client.PostAsync(
-            $"https://{_domain}/api/v2/users/{Uri.EscapeDataString(auth0UserId)}/roles",
-            content);
-
+        var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }
 
