@@ -11,8 +11,8 @@ export class AdminService {
     return this.api.get<PendingUser[]>('admin/pending-users');
   }
 
-  getStaffUsers(): Observable<StaffUser[]> {
-    return this.api.get<StaffUser[]>('admin/staff-users');
+  getActiveUsers(): Observable<StaffUser[]> {
+    return this.api.get<StaffUser[]>('admin/active-users');
   }
 
   deleteUser(userId: string): Observable<void> {
@@ -25,5 +25,13 @@ export class AdminService {
 
   revokeUser(userId: string): Observable<void> {
     return this.api.post<void>(`admin/users/${userId}/revoke`, {});
+  }
+
+  updateRole(userId: string, role: string): Observable<void> {
+    return this.api.put<void>(`admin/users/${userId}/role`, { role });
+  }
+
+  updateIsAdmin(userId: string, isAdmin: boolean): Observable<void> {
+    return this.api.put<void>(`admin/users/${userId}/is-admin`, isAdmin);
   }
 }

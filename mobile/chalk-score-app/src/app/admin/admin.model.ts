@@ -13,6 +13,8 @@ export interface StaffUser {
   firstName: string;
   lastName: string;
   email: string;
+  role: string;
+  isAdmin: boolean;
   createdAt: string;
   updatedAt: string | null;
   updatedByName: string | null;

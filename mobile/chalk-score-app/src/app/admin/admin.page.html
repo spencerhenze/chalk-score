@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/profile"></ion-back-button>
     </ion-buttons>
-    <ion-title>Pending Users</ion-title>
+    <ion-title>Manage Users</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="load()">
         <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
@@ -42,20 +42,25 @@
     </div>
 
     <ion-list-header class="ion-margin-top">
-      <ion-label>Staff</ion-label>
+      <ion-label>Active Users</ion-label>
     </ion-list-header>
-    <ion-list *ngIf="staffUsers.length > 0">
-      <ion-item *ngFor="let user of staffUsers">
+    <ion-list *ngIf="activeUsers.length > 0">
+      <ion-item *ngFor="let user of activeUsers" button (click)="openUserOptions(user)">
         <ion-label>
           <h3>{{ user.firstName }} {{ user.lastName }}</h3>
           <p>{{ user.email }}</p>
           <p *ngIf="user.updatedByName">Last updated by {{ user.updatedByName }}</p>
         </ion-label>
-        <ion-button slot="end" fill="outline" color="danger" (click)="revoke(user)">Revoke</ion-button>
+        <ion-badge slot="end" [color]="user.role === 'Coach' ? 'primary' : 'medium'">
+          {{ user.role }}
+        </ion-badge>
+        <ion-badge slot="end" color="warning" *ngIf="user.isAdmin" class="ion-margin-start">
+          Admin
+        </ion-badge>
       </ion-item>
     </ion-list>
-    <div *ngIf="staffUsers.length === 0" class="ion-padding ion-text-center">
-      <p>No staff users.</p>
+    <div *ngIf="activeUsers.length === 0" class="ion-padding ion-text-center">
+      <p>No active users.</p>
     </div>
   </ng-container>
 </ion-content>

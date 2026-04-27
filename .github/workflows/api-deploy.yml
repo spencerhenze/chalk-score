@@ -157,6 +157,7 @@ jobs:
                 "Auth0__ManagementClientId=${{ secrets.AUTH0_MANAGEMENT_CLIENT_ID }}" \
                 "Auth0__ManagementClientSecret=${{ secrets.AUTH0_MANAGEMENT_CLIENT_SECRET }}" \
                 "Auth0__StaffRoleId=${{ secrets.AUTH0_STAFF_ROLE_ID }}" \
+                "Auth0__CoachRoleId=${{ secrets.AUTH0_COACH_ROLE_ID }}" \
               --output none
           else
             az containerapp create \
@@ -178,6 +179,7 @@ jobs:
                 "Auth0__ManagementClientId=${{ secrets.AUTH0_MANAGEMENT_CLIENT_ID }}" \
                 "Auth0__ManagementClientSecret=${{ secrets.AUTH0_MANAGEMENT_CLIENT_SECRET }}" \
                 "Auth0__StaffRoleId=${{ secrets.AUTH0_STAFF_ROLE_ID }}" \
+                "Auth0__CoachRoleId=${{ secrets.AUTH0_COACH_ROLE_ID }}" \
               --output none
           fi
         env:

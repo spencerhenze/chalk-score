@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ToastController } from '@ionic/angular';
+import { ActionSheetController, ToastController } from '@ionic/angular';
 import { AdminService } from './admin.service';
 import { PendingUser, StaffUser } from './admin.model';
 
@@ -10,10 +10,14 @@ import { PendingUser, StaffUser } from './admin.model';
 })
 export class AdminPage implements OnInit {
   pendingUsers: PendingUser[] = [];
-  staffUsers: StaffUser[] = [];
+  activeUsers: StaffUser[] = [];
   loading = false;
 
-  constructor(private service: AdminService, private toast: ToastController) {}
+  constructor(
+    private service: AdminService,
+    private toast: ToastController,
+    private actionSheet: ActionSheetController,
+  ) {}
 
   ngOnInit() {
     this.load();
@@ -23,10 +27,10 @@ export class AdminPage implements OnInit {
     this.loading = true;
     Promise.all([
       this.service.getPendingUsers().toPromise(),
-      this.service.getStaffUsers().toPromise(),
-    ]).then(([pending, staff]) => {
+      this.service.getActiveUsers().toPromise(),
+    ]).then(([pending, active]) => {
       this.pendingUsers = pending ?? [];
-      this.staffUsers = staff ?? [];
+      this.activeUsers = active ?? [];
       this.loading = false;
     }).catch(() => {
       this.loading = false;
@@ -54,10 +58,62 @@ export class AdminPage implements OnInit {
     });
   }
 
-  revoke(user: StaffUser) {
+  async openUserOptions(user: StaffUser) {
+    const roleOption = user.role === 'Coach'
+      ? { text: 'Change to Staff', handler: () => this.updateRole(user, 'Staff') }
+      : { text: 'Promote to Coach', handler: () => this.updateRole(user, 'Coach') };
+
+    const adminOption = user.role === 'Coach'
+      ? {
+          text: user.isAdmin ? 'Remove Admin Access' : 'Grant Admin Access',
+          handler: () => this.toggleAdmin(user),
+        }
+      : null;
+
+    const sheet = await this.actionSheet.create({
+      header: `${user.firstName} ${user.lastName}`,
+      buttons: [
+        roleOption,
+        ...(adminOption ? [adminOption] : []),
+        {
+          text: 'Revoke Access',
+          role: 'destructive',
+          handler: () => this.revoke(user),
+        },
+        { text: 'Cancel', role: 'cancel' },
+      ],
+    });
+    await sheet.present();
+  }
+
+  private updateRole(user: StaffUser, role: string) {
+    this.service.updateRole(user.id, role).subscribe({
+      next: () => {
+        user.role = role;
+        if (role === 'Staff') user.isAdmin = false;
+        this.showToast(`${user.firstName} ${user.lastName} updated to ${role}`);
+      },
+      error: () => this.showToast('Failed to update role', 'danger'),
+    });
+  }
+
+  private toggleAdmin(user: StaffUser) {
+    const newValue = !user.isAdmin;
+    this.service.updateIsAdmin(user.id, newValue).subscribe({
+      next: () => {
+        user.isAdmin = newValue;
+        this.showToast(newValue
+          ? `${user.firstName} ${user.lastName} is now an admin`
+          : `Admin access removed for ${user.firstName} ${user.lastName}`);
+      },
+      error: () => this.showToast('Failed to update admin status', 'danger'),
+    });
+  }
+
+  private revoke(user: StaffUser) {
     this.service.revokeUser(user.id).subscribe({
       next: () => {
-        this.staffUsers = this.staffUsers.filter(u => u.id !== user.id);
+        this.activeUsers = this.activeUsers.filter(u => u.id !== user.id);
         this.showToast(`${user.firstName} ${user.lastName} access revoked`, 'warning');
       },
       error: () => this.showToast('Failed to revoke user', 'danger'),

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ChalkScore.Api.DTOs;
 
 public record PendingUserResponse(
@@ -15,7 +17,11 @@ public record StaffUserResponse(
     string FirstName,
     string LastName,
     string Email,
+    string Role,
+    bool IsAdmin,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     string? UpdatedByName
 );
+
+public record UpdateRoleRequest([Required] string Role);
