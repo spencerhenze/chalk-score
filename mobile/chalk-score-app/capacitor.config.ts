@@ -8,6 +8,9 @@ const config: CapacitorConfig = {
     Browser: {
       presentationStyle: 'popover',
     },
+    CapacitorHttp: {
+      enabled: true,
+    },
   },
 };
 

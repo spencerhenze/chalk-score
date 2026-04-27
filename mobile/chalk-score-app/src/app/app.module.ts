@@ -25,6 +25,8 @@ import { environment } from '../environments/environment';
         audience: environment.auth0.audience,
         redirect_uri: environment.auth0.redirectUri,
       },
+      cacheLocation: 'localstorage',
+      useRefreshTokens: true,
     }),
   ],
   providers: [
