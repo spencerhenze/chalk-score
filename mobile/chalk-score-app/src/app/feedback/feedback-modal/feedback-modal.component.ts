@@ -21,14 +21,14 @@ export class FeedbackModalComponent {
   submitting = false;
 
   constructor(
-    private modal: ModalController,
+    private modalCtrl: ModalController,
     private feedbackService: FeedbackService,
     private errorBuffer: ErrorBufferService,
     private toast: ToastController,
   ) {}
 
   dismiss() {
-    this.modal.dismiss();
+    this.modalCtrl.dismiss();
   }
 
   async submit() {
@@ -53,7 +53,7 @@ export class FeedbackModalComponent {
         position: 'bottom',
       });
       await t.present();
-      this.modal.dismiss();
+      this.modalCtrl.dismiss();
     } catch {
       const t = await this.toast.create({
         message: 'Failed to submit feedback. Please try again.',

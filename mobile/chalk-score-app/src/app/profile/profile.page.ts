@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@auth0/auth0-angular';
 import { Browser } from '@capacitor/browser';
-import { ToastController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
+import { FeedbackModalComponent } from '../feedback/feedback-modal/feedback-modal.component';
 import { firstValueFrom } from 'rxjs';
 import { ProfileService } from './profile.service';
 import { UserProfile } from './profile.model';
@@ -23,6 +24,7 @@ export class ProfilePage implements OnInit {
     public auth: AuthService,
     private toast: ToastController,
     private router: Router,
+    private modal: ModalController,
   ) {}
 
   ngOnInit() {
@@ -46,6 +48,20 @@ export class ProfilePage implements OnInit {
   async handleRefresh(event: CustomEvent) {
     await this.load(false);
     (event.target as HTMLIonRefresherElement).complete();
+  }
+
+  async sendFeedback() {
+    const m = await this.modal.create({
+      component: FeedbackModalComponent,
+      componentProps: { currentPage: this.router.url },
+      breakpoints: [0, 0.75, 1],
+      initialBreakpoint: 0.75,
+    });
+    await m.present();
+  }
+
+  openSettings() {
+    this.router.navigate(['/tabs/settings']);
   }
 
   manageUsers() {

@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/profile"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Settings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list-header class="ion-margin-top">
+    <ion-label>Permissions</ion-label>
+  </ion-list-header>
+
+  <ion-list lines="full">
+    <ion-item>
+      <ion-icon name="phone-portrait-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <h3>Motion &amp; Orientation</h3>
+        <p>Shake your phone to report feedback</p>
+      </ion-label>
+      <ion-badge slot="end" [color]="statusColor(motionStatus)">
+        {{ statusLabel(motionStatus) }}
+      </ion-badge>
+    </ion-item>
+  </ion-list>
+
+  <div class="ion-padding ion-margin-top">
+    <ion-note class="ion-padding-bottom" style="display: block; margin-bottom: 12px;">
+      If a permission shows Denied or you accidentally skipped it, tap below to open your
+      phone's Settings and enable it under ChalkScore.
+    </ion-note>
+    <ion-button expand="block" fill="outline" (click)="openSettings()">
+      <ion-icon name="settings-outline" slot="start"></ion-icon>
+      Open Phone Settings
+    </ion-button>
+  </div>
+</ion-content>

@@ -4,14 +4,11 @@ import { AuthService } from '@auth0/auth0-angular';
 import { ModalController } from '@ionic/angular';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
-import { Motion } from '@capacitor/motion';
 import { filter, take } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import { FeedbackModalComponent } from './feedback/feedback-modal/feedback-modal.component';
 import { ErrorBufferService } from './core/services/error-buffer.service';
-
-const SHAKE_THRESHOLD = 15;
-const SHAKE_COOLDOWN_MS = 3000;
+import { PermissionsService } from './core/services/permissions.service';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +17,6 @@ const SHAKE_COOLDOWN_MS = 3000;
   standalone: false,
 })
 export class AppComponent {
-  private lastShakeAt = 0;
   private feedbackOpen = false;
 
   constructor(
@@ -28,8 +24,8 @@ export class AppComponent {
     private ngZone: NgZone,
     private router: Router,
     private modal: ModalController,
-    // Injecting ErrorBufferService here ensures console.error is patched on startup.
     private errorBuffer: ErrorBufferService,
+    private permissions: PermissionsService,
   ) {
     if (environment.nativeBrowser) {
       CapApp.addListener('appUrlOpen', ({ url }) => {
@@ -56,15 +52,7 @@ export class AppComponent {
         });
       });
 
-      Motion.addListener('accel', (event) => {
-        const { x, y, z } = event.accelerationIncludingGravity;
-        const magnitude = Math.sqrt(x * x + y * y + z * z);
-        const now = Date.now();
-        if (magnitude > SHAKE_THRESHOLD && now - this.lastShakeAt > SHAKE_COOLDOWN_MS) {
-          this.lastShakeAt = now;
-          this.ngZone.run(() => this.openFeedbackModal());
-        }
-      });
+      this.permissions.onShake(() => this.openFeedbackModal(), 40, 2000);
     }
   }
 

@@ -32,7 +32,7 @@ export class GymnastFormComponent implements OnInit {
 
   get isEdit() { return !!this.gymnast; }
 
-  constructor(private fb: FormBuilder, private modal: ModalController) {}
+  constructor(private fb: FormBuilder, private modalCtrl: ModalController) {}
 
   ngOnInit() {
     this.form = this.fb.group({
@@ -44,10 +44,10 @@ export class GymnastFormComponent implements OnInit {
 
   save() {
     if (this.form.invalid) return;
-    this.modal.dismiss(this.form.value, 'save');
+    this.modalCtrl.dismiss(this.form.value, 'save');
   }
 
   cancel() {
-    this.modal.dismiss(null, 'cancel');
+    this.modalCtrl.dismiss(null, 'cancel');
   }
 }

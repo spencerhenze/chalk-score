@@ -28,6 +28,10 @@ const routes: Routes = [
         loadChildren: () => import('../admin/admin.module').then(m => m.AdminPageModule),
       },
       {
+        path: 'settings',
+        loadChildren: () => import('../settings/settings.module').then(m => m.SettingsPageModule),
+      },
+      {
         path: '',
         redirectTo: '/tabs/gymnasts',
         pathMatch: 'full',

@@ -49,6 +49,12 @@
       <ion-button *ngIf="profile.isAdmin" expand="block" fill="outline" (click)="manageUsers()" class="ion-margin-bottom">
         Manage Users
       </ion-button>
+      <ion-button expand="block" fill="outline" (click)="sendFeedback()" class="ion-margin-bottom">
+        Send Feedback
+      </ion-button>
+      <ion-button expand="block" fill="outline" (click)="openSettings()" class="ion-margin-bottom">
+        Settings
+      </ion-button>
       <ion-button expand="block" fill="outline" color="danger" (click)="logout()">
         Sign Out
       </ion-button>

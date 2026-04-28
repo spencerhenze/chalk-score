@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>App Permissions</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <p class="ion-text-center ion-padding-bottom" style="color: var(--ion-color-medium)">
+    ChalkScore works best with these permissions.
+  </p>
+
+  <ion-list lines="none">
+    <ion-item *ngFor="let p of permissions" class="permission-item">
+      <ion-icon [name]="p.icon" [color]="p.iconColor" slot="start" size="large"></ion-icon>
+      <ion-label class="ion-text-wrap">
+        <h2>{{ p.title }}</h2>
+        <p>{{ p.description }}</p>
+      </ion-label>
+
+      <div slot="end" class="permission-actions">
+        <ng-container [ngSwitch]="p.status">
+          <ng-container *ngSwitchCase="'pending'">
+            <ion-button size="small" (click)="p.request()">Allow</ion-button>
+            <ion-button size="small" fill="clear" color="medium" (click)="skip(p)">Skip</ion-button>
+          </ng-container>
+          <ion-icon *ngSwitchCase="'granted'" name="checkmark-circle" color="success" size="large"></ion-icon>
+          <ion-icon *ngSwitchCase="'denied'" name="close-circle" color="danger" size="large"></ion-icon>
+          <ion-icon *ngSwitchCase="'skipped'" name="remove-circle-outline" color="medium" size="large"></ion-icon>
+        </ng-container>
+      </div>
+    </ion-item>
+  </ion-list>
+
+  <div class="ion-padding-top">
+    <ion-button expand="block" (click)="done()" [disabled]="!allHandled">
+      Done
+    </ion-button>
+    <ion-button expand="block" fill="clear" color="medium" (click)="done()" *ngIf="!allHandled">
+      Ask Me Later
+    </ion-button>
+  </div>
+</ion-content>
