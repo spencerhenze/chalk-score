@@ -1,4 +1,5 @@
 using ChalkScore.Api.Data;
+using ChalkScore.Api.Data.Repositories;
 using ChalkScore.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,11 @@ builder.Services.AddCors(options =>
 // PostgreSQL via EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddDbContext<FeedbackDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("FeedbackDbConnection")));
+
+builder.Services.AddScoped<IFeedbackRepository, DbFeedbackRepository>();
 
 // Auth0 JWT bearer auth
 builder.Services
@@ -59,6 +65,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await DataSeeder.SeedAsync(db);
+
+    // Create feedback table if it doesn't exist (separate DB, no EF migrations)
+    var feedbackDb = scope.ServiceProvider.GetRequiredService<FeedbackDbContext>();
+    await feedbackDb.Database.EnsureCreatedAsync();
 }
 
 app.Run();

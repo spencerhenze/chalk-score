@@ -127,7 +127,7 @@ jobs:
         run: |
           NPGSQL=$(python3 -c "import os,urllib.parse as p; u=p.urlparse(os.environ['DATABASE_URL']); print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require',end='')")
           chmod +x ./efbundle
-          ./efbundle --connection "$NPGSQL"
+          ./efbundle --connection "$NPGSQL" --context AppDbContext
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
@@ -145,6 +145,8 @@ jobs:
         run: |
           NPGSQL=$(python3 -c "import os,urllib.parse as p; u=p.urlparse(os.environ['DATABASE_URL']); print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require',end='')")
 
+          FEEDBACK_NPGSQL=$(python3 -c "import os,urllib.parse as p; u=p.urlparse(os.environ['FEEDBACK_DATABASE_URL']); print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require',end='')")
+
           if az containerapp show --name $APP_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
             az containerapp update \
               --name $APP_NAME \
@@ -152,6 +154,7 @@ jobs:
               --image $IMAGE \
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=$NPGSQL" \
+                "ConnectionStrings__FeedbackDbConnection=$FEEDBACK_NPGSQL" \
                 "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
                 "Auth0__Audience=${{ secrets.AUTH0_AUDIENCE }}" \
                 "Auth0__ManagementClientId=${{ secrets.AUTH0_MANAGEMENT_CLIENT_ID }}" \
@@ -174,6 +177,7 @@ jobs:
               --registry-password "${{ secrets.GHCR_TOKEN }}" \
               --env-vars \
                 "ConnectionStrings__DefaultConnection=$NPGSQL" \
+                "ConnectionStrings__FeedbackDbConnection=$FEEDBACK_NPGSQL" \
                 "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
                 "Auth0__Audience=${{ secrets.AUTH0_AUDIENCE }}" \
                 "Auth0__ManagementClientId=${{ secrets.AUTH0_MANAGEMENT_CLIENT_ID }}" \
@@ -184,3 +188,4 @@ jobs:
           fi
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          FEEDBACK_DATABASE_URL: ${{ secrets.FEEDBACK_DATABASE_URL }}
