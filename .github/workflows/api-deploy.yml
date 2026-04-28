@@ -43,6 +43,7 @@ jobs:
         run: |
           dotnet ef migrations bundle \
             --project ${{ env.PROJECT_PATH }} \
+            --context AppDbContext \
             --self-contained \
             --runtime linux-x64 \
             --output ./efbundle \
