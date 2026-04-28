@@ -128,7 +128,7 @@ public class TestSessionsController(AppDbContext db) : ControllerBase
 
         db.TestSessionGymnasts.Add(entry);
         await db.SaveChangesAsync();
-        return Created($"/sessions/{id}/gymnasts", entry.Id);
+        return Created($"/sessions/{id}/gymnasts", new { id = entry.Id });
     }
 
     [HttpDelete("{id:guid}/gymnasts/{tsgId:guid}")]
