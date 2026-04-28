@@ -5,6 +5,7 @@ import { ModalController } from '@ionic/angular';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Motion } from '@capacitor/motion';
+import { filter, take } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import { FeedbackModalComponent } from './feedback/feedback-modal/feedback-modal.component';
 import { ErrorBufferService } from './core/services/error-buffer.service';
@@ -37,7 +38,14 @@ export class AppComponent {
             this.auth.handleRedirectCallback(url).subscribe({
               next: () => {
                 Browser.close();
-                this.router.navigate(['/tabs/gymnasts'], { replaceUrl: true });
+                // Wait for Auth0 to update isAuthenticated$ before navigating,
+                // otherwise the guard may sample false and redirect back to /login.
+                this.auth.isAuthenticated$.pipe(
+                  filter(a => a),
+                  take(1),
+                ).subscribe(() => {
+                  this.router.navigate(['/tabs/gymnasts'], { replaceUrl: true });
+                });
               },
               error: (err) => console.error('Auth callback error:', err?.error, err?.error_description, err?.message),
             });

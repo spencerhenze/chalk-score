@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { ModalController } from '@ionic/angular';
+import { AlertController, ModalController } from '@ionic/angular';
 import { FeedbackModalComponent } from '../feedback/feedback-modal/feedback-modal.component';
 
 const LONG_PRESS_MS = 600;
+const MOTION_PREF_KEY = 'motionPermissionAsked';
 
 @Component({
   selector: 'app-tabs',
@@ -14,19 +15,15 @@ const LONG_PRESS_MS = 600;
 export class TabsPage {
   private pressTimer: ReturnType<typeof setTimeout> | null = null;
   private feedbackOpen = false;
-  // Requested once per session; subsequent app launches use the cached OS permission.
-  private static motionPermissionRequested = false;
 
-  constructor(private modal: ModalController, private router: Router) {}
+  constructor(
+    private modal: ModalController,
+    private router: Router,
+    private alertController: AlertController,
+  ) {}
 
-  async onTabPressStart() {
-    const win = window as any;
-    if (!TabsPage.motionPermissionRequested &&
-        typeof win.DeviceMotionEvent?.requestPermission === 'function') {
-      TabsPage.motionPermissionRequested = true;
-      try { await win.DeviceMotionEvent.requestPermission(); } catch { /* denied or unavailable */ }
-    }
-    this.pressTimer = setTimeout(() => this.openFeedbackModal(), LONG_PRESS_MS);
+  onTabPressStart() {
+    this.pressTimer = setTimeout(() => this.handleLongPress(), LONG_PRESS_MS);
   }
 
   onTabPressEnd() {
@@ -34,6 +31,39 @@ export class TabsPage {
       clearTimeout(this.pressTimer);
       this.pressTimer = null;
     }
+  }
+
+  private async handleLongPress() {
+    const win = window as any;
+    const needsPermission =
+      typeof win.DeviceMotionEvent?.requestPermission === 'function' &&
+      !localStorage.getItem(MOTION_PREF_KEY);
+
+    if (needsPermission) {
+      const alert = await this.alertController.create({
+        header: 'Shake to Report',
+        message: 'Allow motion access so you can shake your phone to quickly report feedback.',
+        buttons: [
+          {
+            text: 'Not Now',
+            role: 'cancel',
+            handler: () => localStorage.setItem(MOTION_PREF_KEY, 'skipped'),
+          },
+          {
+            text: 'Allow',
+            // This button tap IS a user gesture — iOS will show the system prompt.
+            handler: () => {
+              localStorage.setItem(MOTION_PREF_KEY, 'granted');
+              win.DeviceMotionEvent.requestPermission().catch(() => {});
+            },
+          },
+        ],
+      });
+      await alert.present();
+      await alert.onDidDismiss();
+    }
+
+    this.openFeedbackModal();
   }
 
   async openFeedbackModal() {

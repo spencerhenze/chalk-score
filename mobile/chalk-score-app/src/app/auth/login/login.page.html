@@ -2,17 +2,20 @@
   <ng-container *ngIf="(auth.isLoading$ | async) || (auth.isAuthenticated$ | async); else showSignIn">
     <div class="login-container">
       <div class="login-logo">
-        <ion-icon name="ribbon-outline" color="primary"></ion-icon>
+        <ion-icon name="barbell-outline" color="primary"></ion-icon>
         <h1>ChalkScore</h1>
       </div>
       <ion-spinner name="crescent"></ion-spinner>
+      <ion-button *ngIf="showRetry" expand="block" fill="outline" (click)="retry()" class="ion-margin-top">
+        Try Again
+      </ion-button>
     </div>
   </ng-container>
 
   <ng-template #showSignIn>
     <div class="login-container">
       <div class="login-logo">
-        <ion-icon name="ribbon-outline" color="primary"></ion-icon>
+        <ion-icon name="barbell-outline" color="primary"></ion-icon>
         <h1>ChalkScore</h1>
       </div>
       <ion-button expand="block" (click)="login()">

@@ -176,7 +176,7 @@ jobs:
               --image $IMAGE \
               --target-port 8080 \
               --ingress external \
-              --min-replicas 0 \
+              --min-replicas 1 \
               --max-replicas 1 \
               --registry-server ghcr.io \
               --registry-username ${{ github.repository_owner }} \
