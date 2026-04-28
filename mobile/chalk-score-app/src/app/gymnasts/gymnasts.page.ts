@@ -1,11 +1,12 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { ActionSheetController, AlertController, ModalController, ToastController } from '@ionic/angular';
 import { AuthService } from '@auth0/auth0-angular';
 import { firstValueFrom } from 'rxjs';
 import { GymnastsService } from './gymnasts.service';
 import { Gymnast } from './gymnast.model';
 import { GymnastFormComponent } from './gymnast-form/gymnast-form.component';
+import { ProfileService } from '../profile/profile.service';
 
 @Component({
   selector: 'app-gymnasts',
@@ -27,9 +28,11 @@ export class GymnastsPage implements OnInit {
     private service: GymnastsService,
     private modal: ModalController,
     private alert: AlertController,
+    private actionSheet: ActionSheetController,
     private toast: ToastController,
     private router: Router,
     public auth: AuthService,
+    private profileService: ProfileService,
   ) {}
 
   ngOnInit() {
@@ -76,6 +79,31 @@ export class GymnastsPage implements OnInit {
   }
 
   async openAdd() {
+    const profile = await firstValueFrom(this.profileService.getMe());
+    if (!profile.isAdmin) {
+      return this.openAddForm();
+    }
+
+    const sheet = await this.actionSheet.create({
+      header: 'Add Gymnasts',
+      buttons: [
+        {
+          text: 'Add Gymnast',
+          icon: 'person-add-outline',
+          handler: () => this.openAddForm(),
+        },
+        {
+          text: 'Import CSV',
+          icon: 'document-outline',
+          handler: () => this.triggerImport(),
+        },
+        { text: 'Cancel', role: 'cancel' },
+      ],
+    });
+    await sheet.present();
+  }
+
+  private async openAddForm() {
     const m = await this.modal.create({ component: GymnastFormComponent });
     await m.present();
     const { data, role } = await m.onWillDismiss();

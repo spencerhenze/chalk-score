@@ -37,8 +37,8 @@ export class SessionsService {
     return this.api.delete<void>(`sessions/${sessionId}`);
   }
 
-  addGymnast(sessionId: string, request: AddGymnastToSessionRequest): Observable<string> {
-    return this.api.post<string>(`sessions/${sessionId}/gymnasts`, request);
+  addGymnast(sessionId: string, request: AddGymnastToSessionRequest): Observable<{ id: string }> {
+    return this.api.post<{ id: string }>(`sessions/${sessionId}/gymnasts`, request);
   }
 
   removeGymnast(sessionId: string, tsgId: string): Observable<void> {
