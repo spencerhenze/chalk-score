@@ -128,7 +128,7 @@ jobs:
         run: |
           NPGSQL=$(python3 -c "import os,urllib.parse as p; u=p.urlparse(os.environ['DATABASE_URL']); print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require',end='')")
           chmod +x ./efbundle
-          ./efbundle --connection "$NPGSQL" --context AppDbContext
+          ./efbundle --connection "$NPGSQL"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
