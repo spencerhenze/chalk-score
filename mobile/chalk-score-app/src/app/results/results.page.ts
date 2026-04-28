@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ToastController } from '@ionic/angular';
-import { forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 import { SessionsService } from '../sessions/sessions.service';
 import { ResultsService, SessionResultsResponse, SessionGymnastResult } from './results.service';
 import { TestSession } from '../sessions/session.model';
@@ -28,44 +28,48 @@ export class ResultsPage {
     this.loadSessions();
   }
 
-  loadSessions() {
-    this.loading = true;
-    forkJoin({
-      open:   this.sessionsService.getOpen(),
-      closed: this.sessionsService.getClosed(),
-    }).subscribe({
-      next: ({ open, closed }) => {
-        this.sessions = [...open, ...closed].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-        this.loading = false;
+  async loadSessions(showSpinner = true): Promise<void> {
+    if (showSpinner) this.loading = true;
+    try {
+      const { open, closed } = await firstValueFrom(forkJoin({
+        open:   this.sessionsService.getOpen(),
+        closed: this.sessionsService.getClosed(),
+      }));
+      this.sessions = [...open, ...closed].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      if (!this.selectedSessionId && this.sessions.length > 0) {
+        this.selectSession(this.sessions[0].id);
+      }
+    } catch {
+      this.showToast('Failed to load sessions', 'danger');
+    } finally {
+      this.loading = false;
+    }
+  }
 
-        if (!this.selectedSessionId && this.sessions.length > 0) {
-          this.selectSession(this.sessions[0].id);
-        }
-      },
-      error: () => {
-        this.loading = false;
-        this.showToast('Failed to load sessions', 'danger');
-      },
-    });
+  async handleRefresh(event: CustomEvent) {
+    await this.loadSessions(false);
+    if (this.selectedSessionId) {
+      await this.loadResultsForSession(this.selectedSessionId);
+    }
+    (event.target as HTMLIonRefresherElement).complete();
   }
 
   selectSession(id: string) {
     this.selectedSessionId = id;
-    this.loadingResults    = true;
-    this.sessionResults    = null;
+    this.loadResultsForSession(id);
+  }
 
-    this.resultsService.getSessionResults(id).subscribe({
-      next: results => {
-        this.sessionResults = results;
-        this.loadingResults = false;
-      },
-      error: () => {
-        this.loadingResults = false;
-        this.showToast('Failed to load results', 'danger');
-      },
-    });
+  private async loadResultsForSession(id: string): Promise<void> {
+    this.loadingResults = true;
+    try {
+      this.sessionResults = await firstValueFrom(this.resultsService.getSessionResults(id));
+    } catch {
+      this.showToast('Failed to load results', 'danger');
+    } finally {
+      this.loadingResults = false;
+    }
   }
 
   get ranked(): SessionGymnastResult[] {

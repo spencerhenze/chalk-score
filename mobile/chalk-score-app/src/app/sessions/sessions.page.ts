@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 import { SessionsService } from './sessions.service';
 import { TestSession } from './session.model';
 import { SessionFormComponent } from './session-form/session-form.component';
@@ -26,15 +27,25 @@ export class SessionsPage {
     this.load();
   }
 
-  load() {
-    this.loading = true;
-    this.service.getOpen().subscribe({
-      next: data => { this.open = data; this.loading = false; },
-      error: () => { this.loading = false; this.showToast('Failed to load sessions', 'danger'); },
-    });
-    this.service.getClosed().subscribe({
-      next: data => { this.closed = data; },
-    });
+  async load(showSpinner = true): Promise<void> {
+    if (showSpinner) this.loading = true;
+    try {
+      const [open, closed] = await Promise.all([
+        firstValueFrom(this.service.getOpen()),
+        firstValueFrom(this.service.getClosed()),
+      ]);
+      this.open = open;
+      this.closed = closed;
+    } catch {
+      this.showToast('Failed to load sessions', 'danger');
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async handleRefresh(event: CustomEvent) {
+    await this.load(false);
+    (event.target as HTMLIonRefresherElement).complete();
   }
 
   get sessions() {

@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { AuthService } from '@auth0/auth0-angular';
+import { firstValueFrom } from 'rxjs';
 import { GymnastsService } from './gymnasts.service';
 import { Gymnast } from './gymnast.model';
 import { GymnastFormComponent } from './gymnast-form/gymnast-form.component';
@@ -35,26 +36,28 @@ export class GymnastsPage implements OnInit {
     this.auth.user$.subscribe(user => {
       this.profilePicture = user?.picture ?? null;
     });
-    this.load();
   }
 
   ionViewWillEnter() {
     this.load();
   }
 
-  async load() {
-    this.loading = true;
-    this.service.getAll().subscribe({
-      next: data => {
-        this.gymnasts = data;
-        this.applySearch();
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-        this.showToast('Failed to load gymnasts', 'danger');
-      },
-    });
+  async load(showSpinner = true): Promise<void> {
+    if (showSpinner) this.loading = true;
+    try {
+      const data = await firstValueFrom(this.service.getAll());
+      this.gymnasts = data;
+      this.applySearch();
+    } catch {
+      this.showToast('Failed to load gymnasts', 'danger');
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async handleRefresh(event: CustomEvent) {
+    await this.load(false);
+    (event.target as HTMLIonRefresherElement).complete();
   }
 
   onSearch(event: CustomEvent) {

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '@auth0/auth0-angular';
 import { Browser } from '@capacitor/browser';
 import { ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 import { ProfileService } from './profile.service';
 import { UserProfile } from './profile.model';
 import { environment } from '../../environments/environment';
@@ -28,18 +29,23 @@ export class ProfilePage implements OnInit {
     this.auth.user$.subscribe(user => {
       this.picture = user?.picture ?? null;
     });
+    this.load();
+  }
 
-    this.loading = true;
-    this.service.getMe().subscribe({
-      next: profile => {
-        this.profile = profile;
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-        this.showToast('Failed to load profile', 'danger');
-      },
-    });
+  async load(showSpinner = true): Promise<void> {
+    if (showSpinner) this.loading = true;
+    try {
+      this.profile = await firstValueFrom(this.service.refresh());
+    } catch {
+      this.showToast('Failed to load profile', 'danger');
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async handleRefresh(event: CustomEvent) {
+    await this.load(false);
+    (event.target as HTMLIonRefresherElement).complete();
   }
 
   manageUsers() {

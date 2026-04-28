@@ -23,19 +23,25 @@ export class AdminPage implements OnInit {
     this.load();
   }
 
-  load() {
-    this.loading = true;
-    Promise.all([
-      this.service.getPendingUsers().toPromise(),
-      this.service.getActiveUsers().toPromise(),
-    ]).then(([pending, active]) => {
+  async load(showSpinner = true): Promise<void> {
+    if (showSpinner) this.loading = true;
+    try {
+      const [pending, active] = await Promise.all([
+        this.service.getPendingUsers().toPromise(),
+        this.service.getActiveUsers().toPromise(),
+      ]);
       this.pendingUsers = pending ?? [];
       this.activeUsers = active ?? [];
-      this.loading = false;
-    }).catch(() => {
-      this.loading = false;
+    } catch {
       this.showToast('Failed to load users', 'danger');
-    });
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async handleRefresh(event: CustomEvent) {
+    await this.load(false);
+    (event.target as HTMLIonRefresherElement).complete();
   }
 
   deleteUser(user: PendingUser) {

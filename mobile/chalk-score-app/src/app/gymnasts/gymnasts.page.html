@@ -30,6 +30,10 @@
 </ion-header>
 
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <ion-list *ngIf="!loading">
     <ion-item-sliding *ngFor="let gymnast of filtered">
       <ion-item (click)="openEdit(gymnast)" button detail>
