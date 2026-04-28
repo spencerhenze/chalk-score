@@ -1,9 +1,12 @@
 import { Component } from '@angular/core';
 import { ToastController } from '@ionic/angular';
 import { firstValueFrom, forkJoin } from 'rxjs';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { SessionsService } from '../sessions/sessions.service';
 import { ResultsService, SessionResultsResponse, SessionGymnastResult } from './results.service';
 import { TestSession } from '../sessions/session.model';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-results',
@@ -59,6 +62,51 @@ export class ResultsPage {
   selectSession(id: string) {
     this.selectedSessionId = id;
     this.loadResultsForSession(id);
+  }
+
+  async exportCsv() {
+    if (!this.sessionResults) return;
+
+    const rows = [
+      ['Rank', 'First Name', 'Last Name', 'Level', 'Test Configuration', 'Score', 'Completed'],
+      ...this.ranked.map((r, i) => [
+        i + 1,
+        r.firstName,
+        r.lastName,
+        r.level,
+        r.testConfigurationName,
+        r.finalScore ?? '',
+        r.isCompleted ? 'Yes' : 'No',
+      ]),
+    ];
+
+    const csv = rows.map(row =>
+      row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+
+    const fileName = `${this.sessionResults.sessionName.replace(/[^a-z0-9]/gi, '_')}_results.csv`;
+
+    if (environment.nativeBrowser) {
+      try {
+        const { uri } = await Filesystem.writeFile({
+          path: fileName,
+          data: csv,
+          directory: Directory.Cache,
+          encoding: 'utf8' as any,
+        });
+        await Share.share({ title: fileName, files: [uri], dialogTitle: 'Export Results' });
+      } catch {
+        this.showToast('Failed to export results', 'danger');
+      }
+    } else {
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   }
 
   private async loadResultsForSession(id: string): Promise<void> {

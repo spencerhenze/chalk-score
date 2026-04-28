@@ -2,6 +2,7 @@ import { Component, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@auth0/auth0-angular';
 import { App as CapApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import { environment } from '../environments/environment';
 
 @Component({
@@ -17,9 +18,15 @@ export class AppComponent {
         this.ngZone.run(() => {
           if (url.includes('state=') && (url.includes('code=') || url.includes('error='))) {
             this.auth.handleRedirectCallback(url).subscribe({
-              next: () => this.router.navigate(['/tabs/gymnasts'], { replaceUrl: true }),
+              next: () => {
+                Browser.close();
+                this.router.navigate(['/tabs/gymnasts'], { replaceUrl: true });
+              },
               error: (err) => console.error('Auth callback error:', err?.error, err?.error_description, err?.message),
             });
+          } else if (url.startsWith('com.chalkscore.app://callback')) {
+            Browser.close();
+            this.router.navigate(['/login'], { replaceUrl: true });
           }
         });
       });

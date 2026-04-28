@@ -1,6 +1,11 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Results</ion-title>
+    <ion-buttons slot="end">
+      <ion-button *ngIf="sessionResults" (click)="exportCsv()">
+        <ion-icon slot="icon-only" name="document-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
   <ion-toolbar *ngIf="sessions.length > 0">
     <ion-select

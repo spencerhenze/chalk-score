@@ -6,7 +6,7 @@ import { RoleGuard } from './core/guards/role.guard';
 const routes: Routes = [
   {
     path: '',
-    redirectTo: '/tabs/gymnasts',
+    redirectTo: '/login',
     pathMatch: 'full',
   },
   {
