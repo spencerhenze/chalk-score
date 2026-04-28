@@ -13,7 +13,7 @@ namespace ChalkScore.Api.Controllers;
 public class FeedbackController(
     IFeedbackRepository feedback,
     UserSyncService userSync,
-    IWebHostEnvironment env) : ControllerBase
+    IConfiguration config) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Submit([FromBody] SubmitFeedbackRequest request)
@@ -32,7 +32,7 @@ public class FeedbackController(
             IsNewFeature       = request.IsNewFeature,
             CurrentPage        = request.CurrentPage,
             ConsoleErrors      = request.ConsoleErrors,
-            Environment        = env.EnvironmentName,
+            Environment        = config["App:Environment"] ?? "Unknown",
         };
 
         await feedback.SaveAsync(item);

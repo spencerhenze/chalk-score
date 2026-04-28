@@ -158,7 +158,7 @@ jobs:
               --resource-group $RESOURCE_GROUP \
               --image $IMAGE \
               --set-env-vars \
-                "ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENV" \
+                "App__Environment=$ENV_SLUG" \
                 "ConnectionStrings__DefaultConnection=$NPGSQL" \
                 "ConnectionStrings__FeedbackDbConnection=$FEEDBACK_NPGSQL" \
                 "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
@@ -182,7 +182,7 @@ jobs:
               --registry-username ${{ github.repository_owner }} \
               --registry-password "${{ secrets.GHCR_TOKEN }}" \
               --env-vars \
-                "ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENV" \
+                "App__Environment=$ENV_SLUG" \
                 "ConnectionStrings__DefaultConnection=$NPGSQL" \
                 "ConnectionStrings__FeedbackDbConnection=$FEEDBACK_NPGSQL" \
                 "Auth0__Domain=${{ secrets.AUTH0_DOMAIN }}" \
