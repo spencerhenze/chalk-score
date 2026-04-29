@@ -30,6 +30,16 @@ export class SessionDetailPage implements OnInit {
     this.load();
   }
 
+  async handleRefresh(event: CustomEvent) {
+    await new Promise<void>(resolve => {
+      this.service.getGymnasts(this.sessionId).subscribe({
+        next: gymnasts => { this.gymnasts = gymnasts; resolve(); },
+        error: () => { this.showToast('Failed to load session', 'danger'); resolve(); },
+      });
+    });
+    (event.target as HTMLIonRefresherElement).complete();
+  }
+
   load() {
     this.loading = true;
     this.service.getGymnasts(this.sessionId).subscribe({

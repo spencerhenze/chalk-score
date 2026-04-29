@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertController, IonInput, ToastController } from '@ionic/angular';
+import { Keyboard } from '@capacitor/keyboard';
 import { TestEntryService } from './test-entry.service';
 import { TestEntryResponse, ExerciseResult } from './test-entry.model';
 
@@ -11,6 +12,8 @@ import { TestEntryResponse, ExerciseResult } from './test-entry.model';
   standalone: false,
 })
 export class TestEntryPage implements OnInit {
+  @ViewChildren(IonInput) inputs!: QueryList<IonInput>;
+
   sessionId!: string;
   tsgId!: string;
 
@@ -18,6 +21,8 @@ export class TestEntryPage implements OnInit {
   form!: FormGroup;
   loading = false;
   saving = false;
+  focusedIndex = -1;
+  private blurTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -123,6 +128,28 @@ export class TestEntryPage implements OnInit {
         this.showToast('Failed to save scores before completing', 'danger');
       },
     });
+  }
+
+  onFocus(index: number) {
+    if (this.blurTimer) clearTimeout(this.blurTimer);
+    this.focusedIndex = index;
+  }
+
+  onBlur() {
+    this.blurTimer = setTimeout(() => { this.focusedIndex = -1; }, 150);
+  }
+
+  focusPrev() {
+    this.inputs.toArray()[this.focusedIndex - 1]?.setFocus();
+  }
+
+  focusNext() {
+    this.inputs.toArray()[this.focusedIndex + 1]?.setFocus();
+  }
+
+  async dismissKeyboard() {
+    await Keyboard.hide();
+    this.focusedIndex = -1;
   }
 
   scoreFor(exerciseId: string): number {

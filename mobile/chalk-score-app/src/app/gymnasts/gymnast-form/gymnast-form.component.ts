@@ -1,6 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ModalController } from '@ionic/angular';
+import { IonInput, ModalController } from '@ionic/angular';
+import { Keyboard } from '@capacitor/keyboard';
 import { Gymnast } from '../gymnast.model';
 
 @Component({
@@ -9,7 +10,11 @@ import { Gymnast } from '../gymnast.model';
   standalone: false,
 })
 export class GymnastFormComponent implements OnInit {
+  @ViewChildren(IonInput) inputs!: QueryList<IonInput>;
   @Input() gymnast?: Gymnast;
+
+  focusedIndex = -1;
+  private blurTimer: ReturnType<typeof setTimeout> | null = null;
 
   form!: FormGroup;
   levels = [
@@ -40,6 +45,28 @@ export class GymnastFormComponent implements OnInit {
       lastName:  [this.gymnast?.lastName  ?? '', [Validators.required, Validators.maxLength(50)]],
       level:     [this.gymnast?.level     ?? null, Validators.required],
     });
+  }
+
+  onFocus(index: number) {
+    if (this.blurTimer) clearTimeout(this.blurTimer);
+    this.focusedIndex = index;
+  }
+
+  onBlur() {
+    this.blurTimer = setTimeout(() => { this.focusedIndex = -1; }, 150);
+  }
+
+  focusPrev() {
+    this.inputs.toArray()[this.focusedIndex - 1]?.setFocus();
+  }
+
+  focusNext() {
+    this.inputs.toArray()[this.focusedIndex + 1]?.setFocus();
+  }
+
+  async dismissKeyboard() {
+    await Keyboard.hide();
+    this.focusedIndex = -1;
   }
 
   save() {

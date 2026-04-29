@@ -32,7 +32,7 @@
 
     <form [formGroup]="form" *ngIf="!entry.isCompleted">
       <ion-list lines="full">
-        <ion-item *ngFor="let exercise of entry.results">
+        <ion-item *ngFor="let exercise of entry.results; let i = index">
           <ion-label position="stacked">
             {{ exercise.exerciseName }}
             <span *ngIf="exercise.unit"> ({{ exercise.unit }})</span>
@@ -47,7 +47,9 @@
             [placeholder]="'0 – ' + exercise.maxValue"
             [min]="0"
             [max]="exercise.scoringType === 'Percentage' ? 100 : exercise.maxValue"
-            step="0.5">
+            step="0.5"
+            (ionFocus)="onFocus(i)"
+            (ionBlur)="onBlur()">
           </ion-input>
         </ion-item>
       </ion-list>
@@ -69,6 +71,19 @@
 </ion-content>
 
 <ion-footer *ngIf="entry && !entry.isCompleted">
+  <ion-toolbar *ngIf="focusedIndex >= 0">
+    <ion-buttons slot="start">
+      <ion-button (click)="focusPrev()" [disabled]="focusedIndex === 0">
+        <ion-icon slot="icon-only" name="chevron-up-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="focusNext()" [disabled]="focusedIndex >= entry.results.length - 1">
+        <ion-icon slot="icon-only" name="chevron-down-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismissKeyboard()">Done</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button fill="outline" (click)="save()" [disabled]="saving || form.invalid">
