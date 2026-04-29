@@ -15,6 +15,10 @@ export class TestEntryService {
     return this.api.put<TestEntryResponse>(`sessions/${sessionId}/gymnasts/${tsgId}/results`, { results });
   }
 
+  deleteResult(sessionId: string, tsgId: string, exerciseId: string): Observable<void> {
+    return this.api.delete<void>(`sessions/${sessionId}/gymnasts/${tsgId}/results/${exerciseId}`);
+  }
+
   complete(sessionId: string, tsgId: string): Observable<TestEntryResponse> {
     return this.api.post<TestEntryResponse>(`sessions/${sessionId}/gymnasts/${tsgId}/complete`, {});
   }

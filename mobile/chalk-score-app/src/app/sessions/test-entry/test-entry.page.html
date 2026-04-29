@@ -10,6 +10,10 @@
 </ion-header>
 
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div *ngIf="loading" class="ion-padding ion-text-center">
     <ion-spinner name="crescent"></ion-spinner>
   </div>
@@ -49,7 +53,7 @@
           step="0.5"
           (ionInput)="updateScore(exercise.exerciseId, $event.detail.value)"
           (ionFocus)="onFocus(i)"
-          (ionBlur)="onBlur()">
+          (ionBlur)="onBlur(exercise.exerciseId)">
         </ion-input>
         <ion-note *ngIf="errorFor(exercise.exerciseId) && scores[exercise.exerciseId] !== null" slot="end" color="danger">
           {{ errorFor(exercise.exerciseId) }}
@@ -87,14 +91,9 @@
     </ion-buttons>
   </ion-toolbar>
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button fill="outline" (click)="save()" [disabled]="saving || !isFormValid">
-        <ion-spinner *ngIf="saving" name="crescent" slot="start"></ion-spinner>
-        Save
-      </ion-button>
-    </ion-buttons>
     <ion-buttons slot="end">
-      <ion-button fill="solid" color="success" (click)="confirmComplete()" [disabled]="saving || !isFormValid">
+      <ion-spinner *ngIf="saving" name="crescent" style="margin-right: 12px"></ion-spinner>
+      <ion-button fill="solid" color="success" (click)="confirmComplete()" [disabled]="saving || !canComplete">
         Complete Test
       </ion-button>
     </ion-buttons>

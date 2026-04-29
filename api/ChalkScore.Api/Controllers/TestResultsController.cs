@@ -68,6 +68,27 @@ public class TestResultsController(AppDbContext db) : ControllerBase
         return Ok(await BuildResponse(entry));
     }
 
+    // DELETE /sessions/{sessionId}/gymnasts/{tsgId}/results/{exerciseId}
+    [HttpDelete("results/{exerciseId:guid}")]
+    [Authorize(Policy = "CoachOnly")]
+    public async Task<IActionResult> DeleteResult(Guid sessionId, Guid tsgId, Guid exerciseId)
+    {
+        var entry = await LoadEntry(sessionId, tsgId);
+        if (entry is null) return NotFound();
+        if (entry.IsCompleted) return Conflict(new { error = "Test is already completed." });
+
+        var result = await db.TestResults
+            .FirstOrDefaultAsync(r => r.TestSessionGymnastId == tsgId && r.ExerciseId == exerciseId);
+
+        if (result is not null)
+        {
+            db.TestResults.Remove(result);
+            await db.SaveChangesAsync();
+        }
+
+        return NoContent();
+    }
+
     // POST /sessions/{sessionId}/gymnasts/{tsgId}/complete
     // Marks the test as complete and calculates the final score.
     [HttpPost("complete")]
