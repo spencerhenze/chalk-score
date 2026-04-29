@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { SessionsService } from '../sessions.service';
@@ -10,7 +10,7 @@ import { AddGymnastComponent } from '../add-gymnast/add-gymnast.component';
   templateUrl: './session-detail.page.html',
   standalone: false,
 })
-export class SessionDetailPage implements OnInit {
+export class SessionDetailPage {
   sessionId!: string;
   session: TestSession | null = null;
   gymnasts: TestSessionGymnast[] = [];
@@ -25,7 +25,7 @@ export class SessionDetailPage implements OnInit {
     private toast: ToastController,
   ) {}
 
-  ngOnInit() {
+  ionViewWillEnter() {
     this.sessionId = this.route.snapshot.paramMap.get('id')!;
     this.load();
   }

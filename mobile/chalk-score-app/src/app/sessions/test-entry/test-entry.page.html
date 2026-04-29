@@ -30,30 +30,32 @@
       </ion-label>
     </ion-item>
 
-    <form [formGroup]="form" *ngIf="!entry.isCompleted">
-      <ion-list lines="full">
-        <ion-item *ngFor="let exercise of entry.results; let i = index">
-          <ion-label position="stacked">
-            {{ exercise.exerciseName }}
-            <span *ngIf="exercise.unit"> ({{ exercise.unit }})</span>
-            <span class="score-preview">
-              &nbsp;· {{ scoreFor(exercise.exerciseId) | number:'1.0-0' }}%
-            </span>
-          </ion-label>
-          <ion-input
-            [formControlName]="exercise.exerciseId"
-            type="number"
-            inputmode="decimal"
-            [placeholder]="'0 – ' + exercise.maxValue"
-            [min]="0"
-            [max]="exercise.scoringType === 'Percentage' ? 100 : exercise.maxValue"
-            step="0.5"
-            (ionFocus)="onFocus(i)"
-            (ionBlur)="onBlur()">
-          </ion-input>
-        </ion-item>
-      </ion-list>
-    </form>
+    <ion-list lines="full" *ngIf="!entry.isCompleted">
+      <ion-item *ngFor="let exercise of entry.results; let i = index">
+        <ion-label position="stacked">
+          {{ exercise.exerciseName }}
+          <span *ngIf="exercise.unit"> ({{ exercise.unit }})</span>
+          <span class="score-preview">
+            &nbsp;· {{ scoreFor(exercise.exerciseId) | number:'1.0-0' }}%
+          </span>
+        </ion-label>
+        <ion-input
+          type="number"
+          inputmode="decimal"
+          [value]="scores[exercise.exerciseId]"
+          [placeholder]="'0 – ' + exercise.maxValue"
+          [min]="0"
+          [max]="exercise.scoringType === 'Percentage' ? 100 : exercise.maxValue"
+          step="0.5"
+          (ionInput)="updateScore(exercise.exerciseId, $event.detail.value)"
+          (ionFocus)="onFocus(i)"
+          (ionBlur)="onBlur()">
+        </ion-input>
+        <ion-note *ngIf="errorFor(exercise.exerciseId) && scores[exercise.exerciseId] !== null" slot="end" color="danger">
+          {{ errorFor(exercise.exerciseId) }}
+        </ion-note>
+      </ion-item>
+    </ion-list>
 
     <!-- Read-only view when completed -->
     <ion-list lines="full" *ngIf="entry.isCompleted">
@@ -86,13 +88,13 @@
   </ion-toolbar>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="outline" (click)="save()" [disabled]="saving || form.invalid">
+      <ion-button fill="outline" (click)="save()" [disabled]="saving || !isFormValid">
         <ion-spinner *ngIf="saving" name="crescent" slot="start"></ion-spinner>
         Save
       </ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
-      <ion-button fill="solid" color="success" (click)="confirmComplete()" [disabled]="saving || form.invalid">
+      <ion-button fill="solid" color="success" (click)="confirmComplete()" [disabled]="saving || !isFormValid">
         Complete Test
       </ion-button>
     </ion-buttons>

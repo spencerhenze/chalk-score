@@ -1,5 +1,4 @@
 import { Component, OnInit, QueryList, ViewChildren } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, IonInput, ToastController } from '@ionic/angular';
 import { Keyboard } from '@capacitor/keyboard';
@@ -18,7 +17,7 @@ export class TestEntryPage implements OnInit {
   tsgId!: string;
 
   entry: TestEntryResponse | null = null;
-  form!: FormGroup;
+  scores: Record<string, number | null> = {};
   loading = false;
   saving = false;
   focusedIndex = -1;
@@ -27,7 +26,6 @@ export class TestEntryPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private fb: FormBuilder,
     private service: TestEntryService,
     private alert: AlertController,
     private toast: ToastController,
@@ -44,7 +42,7 @@ export class TestEntryPage implements OnInit {
     this.service.getEntry(this.sessionId, this.tsgId).subscribe({
       next: entry => {
         this.entry   = entry;
-        this.form    = this.buildForm(entry.results);
+        this.scores  = this.buildScores(entry.results);
         this.loading = false;
       },
       error: () => {
@@ -54,28 +52,46 @@ export class TestEntryPage implements OnInit {
     });
   }
 
-  private buildForm(results: ExerciseResult[]): FormGroup {
-    const controls: Record<string, unknown[]> = {};
+  private buildScores(results: ExerciseResult[]): Record<string, number | null> {
+    const scores: Record<string, number | null> = {};
     for (const r of results) {
-      const max = r.scoringType === 'Percentage' ? 100 : r.maxValue;
-      controls[r.exerciseId] = [
-        r.rawValue ?? null,
-        [Validators.required, Validators.min(0), Validators.max(Number(max))],
-      ];
+      scores[r.exerciseId] = r.rawValue ?? null;
     }
-    return this.fb.group(controls);
+    return scores;
+  }
+
+  get isFormValid(): boolean {
+    if (!this.entry) return false;
+    return this.entry.results.every(r => !this.errorFor(r.exerciseId));
+  }
+
+  errorFor(exerciseId: string): string | null {
+    if (!this.entry) return null;
+    const ex = this.entry.results.find(r => r.exerciseId === exerciseId);
+    if (!ex) return null;
+    const val = this.scores[exerciseId];
+    if (val === null || val === undefined || isNaN(val as number)) return 'Required';
+    const max = ex.scoringType === 'Percentage' ? 100 : Number(ex.maxValue);
+    if ((val as number) < 0) return 'Must be ≥ 0';
+    if (!isNaN(max) && (val as number) > max) return `Max is ${max}`;
+    return null;
+  }
+
+  updateScore(exerciseId: string, value: string | null | undefined): void {
+    this.scores[exerciseId] = value == null || value === '' ? null : Number(value);
   }
 
   save() {
-    if (!this.entry || this.form.invalid) return;
+    if (!this.entry || !this.isFormValid) return;
     this.saving = true;
     const results = this.entry.results.map(r => ({
       exerciseId: r.exerciseId,
-      rawValue:   Number(this.form.value[r.exerciseId]) || 0,
+      rawValue:   this.scores[r.exerciseId] ?? 0,
     }));
     this.service.saveResults(this.sessionId, this.tsgId, results).subscribe({
       next: entry => {
         this.entry  = entry;
+        this.scores = this.buildScores(entry.results);
         this.saving = false;
         this.showToast('Scores saved');
       },
@@ -105,7 +121,7 @@ export class TestEntryPage implements OnInit {
     this.saving = true;
     const results = this.entry!.results.map(r => ({
       exerciseId: r.exerciseId,
-      rawValue:   Number(this.form.value[r.exerciseId]) || 0,
+      rawValue:   this.scores[r.exerciseId] ?? 0,
     }));
 
     this.service.saveResults(this.sessionId, this.tsgId, results).subscribe({
@@ -154,12 +170,11 @@ export class TestEntryPage implements OnInit {
 
   scoreFor(exerciseId: string): number {
     if (!this.entry) return 0;
-    const val = this.form?.value[exerciseId];
-    if (val === null || val === '') return 0;
-    const raw = Number(val) || 0;
+    const val = this.scores[exerciseId];
+    if (val === null || val === undefined) return 0;
     const exercise = this.entry.results.find(r => r.exerciseId === exerciseId);
     if (!exercise) return 0;
-    return this.calculatePreview(raw, exercise);
+    return this.calculatePreview(val, exercise);
   }
 
   private calculatePreview(raw: number, ex: ExerciseResult): number {
