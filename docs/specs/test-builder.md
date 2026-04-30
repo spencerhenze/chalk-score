@@ -9,7 +9,7 @@
 - [x] `TestConfiguration` — add `TestTypeId`, `Version`, `IsDraft`; remove `Name`/`Description`
 - [x] `DataSeeder` — add `TestType` seeds, update existing config seeds
 - [x] `ExercisesController` (CRUD)
-- [x] `TestTypesController` (GET list, POST)
+- [x] `TestTypesController` (GET list, POST, DELETE)
 - [x] `TestConfigurationsController` — expanded with POST, PUT exercises, PUT publish, PATCH correction+recalculate, DELETE
 - [x] Recalculation logic inline in PATCH endpoint (reuses `ScoringService`)
 - [x] Updated `TestConfigurationSummary` response (add `version`, `testTypeName`, filter to published+active)
@@ -22,6 +22,7 @@
 - [x] Profile page — "Enter Admin Mode" button
 - [x] `builder/exercises/` — list page, edit modal, service
 - [x] `builder/tests/` — Level 1 (types), Level 2 (versions), Level 3 (detail), service
+- [x] Swipe-to-delete on Level 1 (all-draft test types) and Level 2 (draft versions)
 - [x] Results detail — show version
 - [x] Test entry — show version in header
 
@@ -87,11 +88,15 @@ public class TestType
 
 ### Migration Plan
 
-1. Create `TestType` table.
-2. Seed two `TestType` rows ("Advanced", "Beginner") — use new stable GUIDs separate from the existing config GUIDs.
-3. Add `TestTypeId`, `Version`, `IsDraft` columns to `TestConfiguration`.
-4. Update the two existing seeded rows: set `TestTypeId` to their respective new `TestType` GUIDs, `Version = 1`, `IsDraft = false`.
-5. Remove `Name` and `Description` columns from `TestConfiguration` (after backfilling).
+The migration (`20260430005832_TestBuilder`) executes in this order to avoid FK violations and data loss:
+
+1. Add `TestTypeId`, `Version`, `IsDraft` columns to `TestConfiguration` (with temporary defaults).
+2. Create `TestTypes` table.
+3. Backfill: for each existing `TestConfiguration`, insert one `TestType` row using the existing `Name`/`Description` columns, then set `TestTypeId`, `Version = 1`, `IsDraft = false`.
+4. Add FK constraint and index (succeeds because all rows are now linked).
+5. Drop `Name` and `Description` from `TestConfiguration`.
+
+On a fresh database the `DataSeeder` runs after migration and inserts the canonical Advanced/Beginner `TestType` and `TestConfiguration` rows with stable GUIDs. On an existing database the seeder detects `TestTypes.Any() == true` and skips — existing data is preserved as-is.
 
 ---
 
@@ -213,6 +218,18 @@ Returns all test types with a summary of their versions.
     ]
   }
 ]
+```
+
+---
+
+#### `DELETE /test-types/{id}`
+Hard-deletes a test type and all its draft versions. Blocked (`409 Conflict`) if any version is published.
+
+**Response `204 No Content`**
+
+**Error `409 Conflict`:**
+```json
+{ "error": "Cannot delete a test type that has published versions." }
 ```
 
 ---
@@ -428,16 +445,18 @@ Three-level drill-down via standard Ionic push navigation.
 ### Level 1 — Test Types list (`tests-builder.page`)
 
 - Rows: test type name, active version label (e.g., "v2 active"), draft count badge.
-- FAB → alert with name/description inputs → `POST /test-types` → navigate to Level 3 for the new empty v1.
+- FAB → alert with name/description inputs → `POST /test-types` → navigate to Level 2 (versions list for the new type).
 - Tap row → Level 2.
+- Swipe left → delete (only when all versions are drafts) → confirmation alert noting how many draft versions will be cascade-deleted → `DELETE /test-types/{id}`.
 
 ### Level 2 — Versions list (`test-versions.page`)
 
 Route: `/tabs/builder-tests/:typeId`
 
 - Rows: "v1", "v2 (draft)", etc. with active/draft badges and exercise count.
-- "New Version" button → `POST /test-configurations` (copies latest published) → navigate to Level 3.
+- "New Version" button → `POST /test-configurations` (copies latest published version if one exists, otherwise empty) → navigate to Level 3.
 - Tap row → Level 3.
+- Swipe left → delete (draft versions only) → confirmation alert → `DELETE /test-configurations/{id}`.
 
 ### Level 3 — Version detail (`test-version-detail.page`)
 
@@ -485,7 +504,7 @@ Header: `"Advanced v2 — Draft"` or `"Advanced v1 — Active"`
 | `Controllers/TestTypesController.cs` | Create |
 | `Controllers/TestConfigurationsController.cs` | Expand with POST, PUT (exercises + publish), PATCH, DELETE |
 | `DTOs/` | Add request/response DTOs for all new endpoints |
-| `Services/ScoringService.cs` | Expose a `RecalculateForConfiguration` method (reuses existing logic) |
+| `Services/ScoringService.cs` | Recalculation logic implemented inline in the PATCH endpoint (no separate method needed) |
 
 ### Mobile
 
