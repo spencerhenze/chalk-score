@@ -48,6 +48,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<UserSyncService>();
 builder.Services.AddScoped<Auth0ManagementService>();
+builder.Services.AddScoped<GitHubService>();
 
 var app = builder.Build();
 

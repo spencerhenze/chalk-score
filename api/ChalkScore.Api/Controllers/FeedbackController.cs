@@ -13,6 +13,7 @@ namespace ChalkScore.Api.Controllers;
 public class FeedbackController(
     IFeedbackRepository feedback,
     UserSyncService userSync,
+    GitHubService gitHub,
     IConfiguration config) : ControllerBase
 {
     [HttpPost]
@@ -36,6 +37,7 @@ public class FeedbackController(
         };
 
         await feedback.SaveAsync(item);
+        await gitHub.CreateIssueAsync(item);
         return Ok();
     }
 }
