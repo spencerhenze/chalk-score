@@ -504,7 +504,7 @@ Header: `"Advanced v2 — Draft"` or `"Advanced v1 — Active"`
 | `Controllers/TestTypesController.cs` | Create |
 | `Controllers/TestConfigurationsController.cs` | Expand with POST, PUT (exercises + publish), PATCH, DELETE |
 | `DTOs/` | Add request/response DTOs for all new endpoints |
-| `Services/ScoringService.cs` | Recalculation logic implemented inline in the PATCH endpoint (no separate method needed) |
+| `Controllers/TestResultsController.cs` | Add `DELETE /results/{exerciseId}` endpoint; load `TestType` navigation property for `testVersion` in response |
 
 ### Mobile
 
@@ -514,12 +514,16 @@ Header: `"Advanced v2 — Draft"` or `"Advanced v1 — Active"`
 | `tabs/tabs.page.html` | Swap tab bar based on admin mode |
 | `tabs/tabs.page.ts` | Inject `AdminModeService` |
 | `tabs/tabs-routing.module.ts` | Add builder routes |
-| `profile/profile.page.html` | Add "Enter Admin Mode" button |
-| `profile/profile.page.ts` | Navigate to builder-exercises |
+| `profile/profile.page.html` | Add "Enter Admin Mode" button (amber/warning, admin only) |
+| `profile/profile.page.ts` | Inject `AdminModeService`, add `enterAdminMode()` |
 | `builder/exercises/` | Create (page + modal + service) |
-| `builder/tests/` | Create (3 pages + service) |
-| `results/result-detail/result-detail.page.html` | Show version |
-| `sessions/test-entry/test-entry.page.html` | Show version in header |
+| `builder/tests/` | Create (3 pages + add-exercise modal + service) |
+| `results/result-detail/result-detail.page.html` | Show `(v2)` suffix when `testVersion > 1` |
+| `results/results.service.ts` | Add `testVersion` to `SessionGymnastResult` |
+| `sessions/session.model.ts` | Replace `name`/`description` with `testTypeName`/`version` on `TestConfigurationSummary` |
+| `sessions/add-gymnast/add-gymnast.component.html` | Update dropdown display to use `testTypeName` + version suffix |
+| `sessions/test-entry/test-entry.model.ts` | Add `testVersion` to `TestEntryResponse` |
+| `sessions/test-entry/test-entry.page.html` | Show `· v2` suffix in subheader when `testVersion > 1` |
 
 ---
 
