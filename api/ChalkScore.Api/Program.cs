@@ -1,5 +1,6 @@
 using ChalkScore.Api.Data;
 using ChalkScore.Api.Data.Repositories;
+using ChalkScore.Api.Middleware;
 using ChalkScore.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +56,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
+app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("LocalDev");
 app.UseAuthentication();

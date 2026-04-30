@@ -4,6 +4,7 @@
 **/*.user
 **/.vs/
 api/**/*.env
+api/**/appsettings.Development.json
 
 # Node / Ionic
 mobile/node_modules/

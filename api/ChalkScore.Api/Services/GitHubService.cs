@@ -42,15 +42,14 @@ public class GitHubService(IHttpClientFactory httpClientFactory, IConfiguration 
 
     private async Task<string> GetProjectIdAsync(HttpClient client)
     {
-        var query = $$"""
-            {
-              "query": "query { user(login: \"{{_owner}}\") { projectV2(number: {{_projectNumber}}) { id } } }"
-            }
-            """;
+        var payload = JsonSerializer.Serialize(new
+        {
+            query = $"query {{ user(login: \"{_owner}\") {{ projectV2(number: {_projectNumber}) {{ id }} }} }}"
+        });
 
         var response = await client.PostAsync(
             "https://api.github.com/graphql",
-            new StringContent(query, System.Text.Encoding.UTF8, "application/json"));
+            new StringContent(payload, System.Text.Encoding.UTF8, "application/json"));
 
         response.EnsureSuccessStatusCode();
 
@@ -65,15 +64,14 @@ public class GitHubService(IHttpClientFactory httpClientFactory, IConfiguration 
 
     private async Task AddIssueToProjectAsync(HttpClient client, string projectId, string issueNodeId)
     {
-        var mutation = $$"""
-            {
-              "query": "mutation { addProjectV2ItemById(input: { projectId: \"{{projectId}}\", contentId: \"{{issueNodeId}}\" }) { item { id } } }"
-            }
-            """;
+        var payload = JsonSerializer.Serialize(new
+        {
+            query = $"mutation {{ addProjectV2ItemById(input: {{ projectId: \"{projectId}\", contentId: \"{issueNodeId}\" }}) {{ item {{ id }} }} }}"
+        });
 
         var response = await client.PostAsync(
             "https://api.github.com/graphql",
-            new StringContent(mutation, System.Text.Encoding.UTF8, "application/json"));
+            new StringContent(payload, System.Text.Encoding.UTF8, "application/json"));
 
         response.EnsureSuccessStatusCode();
     }

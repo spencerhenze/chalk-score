@@ -15,6 +15,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TestSession> TestSessions => Set<TestSession>();
     public DbSet<TestSessionGymnast> TestSessionGymnasts => Set<TestSessionGymnast>();
     public DbSet<TestResult> TestResults => Set<TestResult>();
+    public DbSet<ChalkScoreLog> ChalkScoreLogs => Set<ChalkScoreLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
