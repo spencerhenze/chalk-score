@@ -32,6 +32,14 @@ const routes: Routes = [
         loadChildren: () => import('../settings/settings.module').then(m => m.SettingsPageModule),
       },
       {
+        path: 'builder-exercises',
+        loadChildren: () => import('../builder/exercises/exercises-builder.module').then(m => m.ExercisesBuilderPageModule),
+      },
+      {
+        path: 'builder-tests',
+        loadChildren: () => import('../builder/tests/tests-builder.module').then(m => m.TestsBuilderPageModule),
+      },
+      {
         path: '',
         redirectTo: '/tabs/gymnasts',
         pathMatch: 'full',

@@ -176,7 +176,7 @@ public class GymnastsController(AppDbContext db) : ControllerBase
                 tsg.Id,
                 tsg.TestSession.Name,
                 tsg.TestSession.Date,
-                tsg.TestConfiguration.Name,
+                tsg.TestConfiguration.TestType.Name,
                 tsg.FinalScore,
                 tsg.IsCompleted
             ))

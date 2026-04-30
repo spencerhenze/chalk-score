@@ -30,7 +30,7 @@ export interface AddGymnastToSessionRequest {
 
 export interface TestConfigurationSummary {
   id: string;
-  name: string;
-  description: string;
+  testTypeName: string;
+  version: number;
   exerciseCount: number;
 }

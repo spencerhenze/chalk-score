@@ -1,0 +1,63 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()">Cancel</ion-button>
+    </ion-buttons>
+    <ion-title>{{ isEdit ? 'Edit Exercise' : 'New Exercise' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button strong (click)="save()" [disabled]="!isValid || saving">
+        <ion-spinner *ngIf="saving" name="crescent" slot="start"></ion-spinner>
+        Save
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list lines="full">
+    <ion-item>
+      <ion-input
+        label="Name"
+        labelPlacement="stacked"
+        placeholder="e.g. Rope Climb"
+        [(ngModel)]="name"
+        required>
+      </ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-input
+        label="Description"
+        labelPlacement="stacked"
+        placeholder="Optional"
+        [(ngModel)]="description">
+      </ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-select
+        label="Measurement Type"
+        labelPlacement="stacked"
+        [(ngModel)]="measurementType">
+        <ion-select-option *ngFor="let t of measurementTypes" [value]="t">{{ t }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-input
+        label="Unit"
+        labelPlacement="stacked"
+        placeholder="e.g. reps, seconds, %"
+        [(ngModel)]="unit"
+        required>
+      </ion-input>
+    </ion-item>
+  </ion-list>
+
+  <ion-item *ngIf="error" color="danger" lines="none" class="ion-margin-top">
+    <ion-label>{{ error }}</ion-label>
+  </ion-item>
+
+  <div *ngIf="isEdit" class="ion-padding-top">
+    <ion-button expand="block" fill="outline" color="danger" (click)="confirmDelete()" [disabled]="saving">
+      Delete Exercise
+    </ion-button>
+  </div>
+</ion-content>

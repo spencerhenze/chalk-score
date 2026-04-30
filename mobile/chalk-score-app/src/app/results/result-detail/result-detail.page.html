@@ -45,7 +45,7 @@
         </ion-label>
         <ion-label>
           <h2>{{ result.lastName }}, {{ result.firstName }}</h2>
-          <p>{{ result.testConfigurationName }} · Lvl {{ result.level }}</p>
+          <p>{{ result.testConfigurationName }}<span *ngIf="result.testVersion > 1"> (v{{ result.testVersion }})</span> · Lvl {{ result.level }}</p>
         </ion-label>
         <ion-note slot="end" [color]="result.isCompleted ? 'primary' : 'medium'">
           <span *ngIf="result.finalScore !== null">{{ result.finalScore | number:'1.1-1' }}</span>

@@ -36,7 +36,7 @@
           labelPlacement="stacked"
           placeholder="Select test type">
           <ion-select-option *ngFor="let c of configurations" [value]="c.id">
-            {{ c.name }}
+            {{ c.testTypeName }}{{ c.version > 1 ? ' (v' + c.version + ')' : '' }}
           </ion-select-option>
         </ion-select>
       </ion-item>

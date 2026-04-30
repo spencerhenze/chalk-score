@@ -46,6 +46,9 @@
     </ion-list>
 
     <div class="ion-padding ion-margin-top">
+      <ion-button *ngIf="profile.isAdmin" expand="block" fill="outline" color="warning" (click)="enterAdminMode()" class="ion-margin-bottom">
+        Enter Admin Mode
+      </ion-button>
       <ion-button *ngIf="profile.isAdmin" expand="block" fill="outline" (click)="manageUsers()" class="ion-margin-bottom">
         Manage Users
       </ion-button>

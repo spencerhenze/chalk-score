@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { PermissionsPromptComponent } from '../permissions-prompt/permissions-prompt.component';
 import { PermissionsService } from '../core/services/permissions.service';
+import { AdminModeService } from '../core/services/admin-mode.service';
 
 @Component({
   selector: 'app-tabs',
@@ -15,6 +16,7 @@ export class TabsPage {
   constructor(
     private modal: ModalController,
     private permissions: PermissionsService,
+    public adminMode: AdminModeService,
   ) {}
 
   async ionViewDidEnter() {

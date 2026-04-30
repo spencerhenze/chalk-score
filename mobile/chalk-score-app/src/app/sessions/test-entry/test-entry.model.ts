@@ -16,6 +16,7 @@ export interface TestEntryResponse {
   lastName: string;
   level: number;
   testConfigurationName: string;
+  testVersion: number;
   isCompleted: boolean;
   finalScore: number | null;
   results: ExerciseResult[];

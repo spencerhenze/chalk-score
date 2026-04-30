@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar color="warning">
+    <ion-title>Admin Mode</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="adminMode.exit()">Exit</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-title>Tests</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div *ngIf="loading" class="ion-padding ion-text-center">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <ion-list *ngIf="!loading" lines="full">
+    <ion-item-sliding *ngFor="let type of testTypes">
+      <ion-item button detail (click)="openType(type)">
+        <ion-label>
+          <h2>{{ type.name }}</h2>
+          <p>{{ activeVersionLabel(type) }}</p>
+        </ion-label>
+        <ion-badge *ngIf="draftCount(type) > 0" slot="end" color="warning">
+          {{ draftCount(type) }} draft{{ draftCount(type) > 1 ? 's' : '' }}
+        </ion-badge>
+      </ion-item>
+      <ion-item-options side="end" *ngIf="isAllDraft(type)">
+        <ion-item-option color="danger" (click)="deleteType(type)">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+
+    <ion-item *ngIf="testTypes.length === 0">
+      <ion-label class="ion-text-center ion-padding">
+        <p>No test types yet. Tap + to create one.</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="promptNewType()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
