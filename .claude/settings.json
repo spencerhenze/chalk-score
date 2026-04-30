@@ -6,7 +6,8 @@
       "Bash(psql -h localhost -d chalkscore_dev -U spencer -c \"\\\\d \\\\\"TestConfigurations\\\\\"\")",
       "Bash(dotnet ef *)",
       "Bash(psql -h localhost -d chalkscore_dev -U spencer -c ' *)",
-      "Bash(psql -h localhost -d chalkscore_dev -U spencer -c \"SELECT COUNT\\(*\\) FROM \\\\\"Exercises\\\\\"; SELECT COUNT\\(*\\) FROM \\\\\"TestConfigurationExercises\\\\\";\")"
+      "Bash(psql -h localhost -d chalkscore_dev -U spencer -c \"SELECT COUNT\\(*\\) FROM \\\\\"Exercises\\\\\"; SELECT COUNT\\(*\\) FROM \\\\\"TestConfigurationExercises\\\\\";\")",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }

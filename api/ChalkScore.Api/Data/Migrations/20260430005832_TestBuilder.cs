@@ -11,14 +11,7 @@ namespace ChalkScore.Api.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Description",
-                table: "TestConfigurations");
-
-            migrationBuilder.DropColumn(
-                name: "Name",
-                table: "TestConfigurations");
-
+            // Step 1: add new columns (keep Name/Description for now — needed for backfill)
             migrationBuilder.AddColumn<bool>(
                 name: "IsDraft",
                 table: "TestConfigurations",
@@ -40,6 +33,7 @@ namespace ChalkScore.Api.Data.Migrations
                 nullable: false,
                 defaultValue: 0);
 
+            // Step 2: create TestTypes table
             migrationBuilder.CreateTable(
                 name: "TestTypes",
                 columns: table => new
@@ -56,18 +50,19 @@ namespace ChalkScore.Api.Data.Migrations
                     table.PrimaryKey("PK_TestTypes", x => x.Id);
                 });
 
-            // Backfill: create a TestType for each existing TestConfiguration and link them
+            // Step 3: backfill — one TestType per existing configuration, using the old Name column
             migrationBuilder.Sql(@"
-                INSERT INTO ""TestTypes"" (""Id"", ""Name"", ""IsActive"", ""CreatedAt"")
-                SELECT gen_random_uuid(), 'Legacy Test', true, NOW()
-                WHERE EXISTS (SELECT 1 FROM ""TestConfigurations"");
+                INSERT INTO ""TestTypes"" (""Id"", ""Name"", ""Description"", ""IsActive"", ""CreatedAt"")
+                SELECT gen_random_uuid(), tc.""Name"", tc.""Description"", true, NOW()
+                FROM ""TestConfigurations"" tc;
 
                 UPDATE ""TestConfigurations"" tc
-                SET ""TestTypeId"" = t.""Id"", ""Version"" = 1, ""IsDraft"" = false
-                FROM (SELECT ""Id"" FROM ""TestTypes"" LIMIT 1) t
-                WHERE tc.""TestTypeId"" = '00000000-0000-0000-0000-000000000000';
+                SET ""TestTypeId"" = tt.""Id"", ""Version"" = 1, ""IsDraft"" = false
+                FROM ""TestTypes"" tt
+                WHERE tt.""Name"" = tc.""Name"";
             ");
 
+            // Step 4: add FK and index now that all rows are linked
             migrationBuilder.CreateIndex(
                 name: "IX_TestConfigurations_TestTypeId",
                 table: "TestConfigurations",
@@ -80,6 +75,15 @@ namespace ChalkScore.Api.Data.Migrations
                 principalTable: "TestTypes",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+
+            // Step 5: drop old columns now that they've been migrated to TestTypes
+            migrationBuilder.DropColumn(
+                name: "Description",
+                table: "TestConfigurations");
+
+            migrationBuilder.DropColumn(
+                name: "Name",
+                table: "TestConfigurations");
         }
 
         /// <inheritdoc />
