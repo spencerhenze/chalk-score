@@ -30,7 +30,7 @@
     <!-- Subheader -->
     <ion-item lines="none" color="light">
       <ion-label>
-        <p>{{ entry.testConfigurationName }} · Level {{ entry.level }}</p>
+        <p>{{ entry.testConfigurationName }}<span *ngIf="entry.testVersion > 1"> · v{{ entry.testVersion }}</span> · Level {{ entry.level }}</p>
       </ion-label>
     </ion-item>
 

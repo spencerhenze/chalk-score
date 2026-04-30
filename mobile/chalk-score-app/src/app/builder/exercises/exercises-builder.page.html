@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar color="warning">
+    <ion-title>Admin Mode</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="adminMode.exit()">Exit</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-title>Exercises</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div *ngIf="loading" class="ion-padding ion-text-center">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <ion-list *ngIf="!loading" lines="full">
+    <ion-item *ngFor="let exercise of exercises" button detail (click)="openEdit(exercise)">
+      <ion-label>
+        <h2>{{ exercise.name }}</h2>
+        <p>{{ exercise.measurementType }} · {{ exercise.unit }}</p>
+      </ion-label>
+      <ion-badge slot="end" [color]="exercise.isActive ? 'success' : 'medium'">
+        {{ exercise.isActive ? 'Active' : 'Inactive' }}
+      </ion-badge>
+    </ion-item>
+
+    <ion-item *ngIf="exercises.length === 0">
+      <ion-label class="ion-text-center ion-padding">
+        <p>No exercises yet. Tap + to add one.</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="openCreate()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

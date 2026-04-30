@@ -6,8 +6,10 @@ namespace ChalkScore.Api.Data;
 public static class DataSeeder
 {
     // Stable GUIDs so this seeder is idempotent across runs
-    private static readonly Guid AdvancedConfigId  = new("10000000-0000-0000-0000-000000000001");
-    private static readonly Guid BeginnerConfigId  = new("10000000-0000-0000-0000-000000000002");
+    private static readonly Guid AdvancedTypeId     = new("30000000-0000-0000-0000-000000000001");
+    private static readonly Guid BeginnerTypeId     = new("30000000-0000-0000-0000-000000000002");
+    private static readonly Guid AdvancedConfigId   = new("10000000-0000-0000-0000-000000000001");
+    private static readonly Guid BeginnerConfigId   = new("10000000-0000-0000-0000-000000000002");
 
     // Shared exercises
     private static readonly Guid RopeId            = new("20000000-0000-0000-0000-000000000001");
@@ -37,7 +39,7 @@ public static class DataSeeder
 
     public static async Task SeedAsync(AppDbContext db)
     {
-        if (await db.TestConfigurations.AnyAsync()) return;
+        if (await db.TestTypes.AnyAsync()) return;
 
         var exercises = new List<Exercise>
         {
@@ -67,23 +69,40 @@ public static class DataSeeder
             Ex(LungeJumpsBegId,   "Lunge Jumps",              MeasurementType.Reps,       "reps"),
         };
 
-        var advanced = new TestConfiguration
+        var advancedType = new TestType
         {
-            Id          = AdvancedConfigId,
+            Id          = AdvancedTypeId,
             Name        = "Advanced",
             Description = "Advanced conditioning test",
-            Exercises   = AdvancedExercises(),
+        };
+
+        var beginnerType = new TestType
+        {
+            Id          = BeginnerTypeId,
+            Name        = "Beginner",
+            Description = "Beginner conditioning test",
+        };
+
+        var advanced = new TestConfiguration
+        {
+            Id         = AdvancedConfigId,
+            TestTypeId = AdvancedTypeId,
+            Version    = 1,
+            IsDraft    = false,
+            Exercises  = AdvancedExercises(),
         };
 
         var beginner = new TestConfiguration
         {
-            Id          = BeginnerConfigId,
-            Name        = "Beginner",
-            Description = "Beginner conditioning test",
-            Exercises   = BeginnerExercises(),
+            Id         = BeginnerConfigId,
+            TestTypeId = BeginnerTypeId,
+            Version    = 1,
+            IsDraft    = false,
+            Exercises  = BeginnerExercises(),
         };
 
         db.Exercises.AddRange(exercises);
+        db.TestTypes.AddRange(advancedType, beginnerType);
         db.TestConfigurations.AddRange(advanced, beginner);
         await db.SaveChangesAsync();
     }

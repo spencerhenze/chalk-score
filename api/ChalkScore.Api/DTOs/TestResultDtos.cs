@@ -29,6 +29,7 @@ public record TestEntryResponse(
     string LastName,
     string Level,
     string TestConfigurationName,
+    int TestVersion,
     bool IsCompleted,
     decimal? FinalScore,
     List<ExerciseResultResponse> Results

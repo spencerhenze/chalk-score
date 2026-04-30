@@ -8,6 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { ProfileService } from './profile.service';
 import { UserProfile } from './profile.model';
 import { environment } from '../../environments/environment';
+import { AdminModeService } from '../core/services/admin-mode.service';
 
 @Component({
   selector: 'app-profile',
@@ -25,6 +26,7 @@ export class ProfilePage implements OnInit {
     private toast: ToastController,
     private router: Router,
     private modal: ModalController,
+    private adminMode: AdminModeService,
   ) {}
 
   ngOnInit() {
@@ -66,6 +68,10 @@ export class ProfilePage implements OnInit {
 
   manageUsers() {
     this.router.navigate(['/tabs/admin']);
+  }
+
+  enterAdminMode() {
+    this.adminMode.enter();
   }
 
   logout() {

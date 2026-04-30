@@ -1,0 +1,122 @@
+<ion-header>
+  <ion-toolbar color="warning">
+    <ion-title>Admin Mode</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="adminMode.exit()">Exit</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/tabs/builder-tests/' + typeId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ headerTitle }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div *ngIf="loading" class="ion-padding ion-text-center">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <ng-container *ngIf="config && !loading">
+
+    <!-- Draft mode: reorderable, full edit -->
+    <ng-container *ngIf="config.isDraft">
+      <ion-list lines="full">
+        <ion-reorder-group (ionItemReorder)="handleReorder($event)" [disabled]="false">
+          <ion-item *ngFor="let ex of exercises; let i = index">
+            <ion-label>
+              <p class="exercise-name">{{ ex.name }} <span class="unit">({{ ex.unit }})</span></p>
+              <ion-grid class="ion-no-padding ion-padding-top">
+                <ion-row>
+                  <ion-col size="6">
+                    <ion-select label="Scoring" labelPlacement="stacked" [(ngModel)]="ex.scoringType" interface="popover">
+                      <ion-select-option *ngFor="let t of scoringTypes" [value]="t">{{ t }}</ion-select-option>
+                    </ion-select>
+                  </ion-col>
+                  <ion-col size="3">
+                    <ion-input label="Max" labelPlacement="stacked" type="number" [(ngModel)]="ex.maxValue"></ion-input>
+                  </ion-col>
+                  <ion-col size="3">
+                    <ion-input label="Weight" labelPlacement="stacked" type="number" [(ngModel)]="ex.weight"></ion-input>
+                  </ion-col>
+                </ion-row>
+                <ion-row class="ion-align-items-center ion-padding-top">
+                  <ion-col>
+                    <ion-toggle [(ngModel)]="ex.required">Required</ion-toggle>
+                  </ion-col>
+                  <ion-col size="auto">
+                    <ion-button fill="clear" color="danger" size="small" (click)="removeExercise(i)">
+                      <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                    </ion-button>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-label>
+            <ion-reorder slot="end"></ion-reorder>
+          </ion-item>
+        </ion-reorder-group>
+
+        <ion-item button (click)="addExercise()">
+          <ion-icon slot="start" name="add-circle-outline" color="primary"></ion-icon>
+          <ion-label color="primary">Add Exercise</ion-label>
+        </ion-item>
+      </ion-list>
+
+      <div class="ion-padding">
+        <ion-button expand="block" (click)="saveDraft()" [disabled]="saving" class="ion-margin-bottom">
+          <ion-spinner *ngIf="saving" name="crescent" slot="start"></ion-spinner>
+          Save
+        </ion-button>
+        <ion-button expand="block" color="success" (click)="confirmPublish()" [disabled]="saving || exercises.length === 0" class="ion-margin-bottom">
+          Publish
+        </ion-button>
+        <ion-button expand="block" fill="outline" color="danger" (click)="confirmDelete()" [disabled]="saving">
+          Delete Draft
+        </ion-button>
+      </div>
+    </ng-container>
+
+    <!-- Published mode: structure read-only, scoring params editable -->
+    <ng-container *ngIf="!config.isDraft">
+      <ion-list lines="full">
+        <ion-item *ngFor="let ex of exercises">
+          <ion-label>
+            <p class="exercise-name">{{ ex.name }} <span class="unit">({{ ex.unit }})</span></p>
+            <ion-grid class="ion-no-padding ion-padding-top">
+              <ion-row>
+                <ion-col size="6">
+                  <ion-select label="Scoring" labelPlacement="stacked" [(ngModel)]="ex.scoringType" interface="popover"
+                    (ionChange)="onScoringParamChanged(ex.exerciseId)">
+                    <ion-select-option *ngFor="let t of scoringTypes" [value]="t">{{ t }}</ion-select-option>
+                  </ion-select>
+                </ion-col>
+                <ion-col size="3">
+                  <ion-input label="Max" labelPlacement="stacked" type="number" [(ngModel)]="ex.maxValue"
+                    (ionChange)="onScoringParamChanged(ex.exerciseId)"></ion-input>
+                </ion-col>
+                <ion-col size="3">
+                  <ion-input label="Weight" labelPlacement="stacked" type="number" [(ngModel)]="ex.weight"
+                    (ionChange)="onScoringParamChanged(ex.exerciseId)"></ion-input>
+                </ion-col>
+              </ion-row>
+              <ion-row class="ion-padding-top">
+                <ion-col>
+                  <ion-note>Required: {{ ex.required ? 'Yes' : 'No' }}</ion-note>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <div class="ion-padding">
+        <ion-button expand="block" color="warning" (click)="confirmCorrect()" [disabled]="saving || modifiedExerciseIds.size === 0">
+          <ion-spinner *ngIf="saving" name="crescent" slot="start"></ion-spinner>
+          Correct &amp; Recalculate
+        </ion-button>
+      </div>
+    </ng-container>
+
+  </ng-container>
+</ion-content>

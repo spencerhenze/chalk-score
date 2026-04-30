@@ -14,6 +14,7 @@ public record SessionGymnastResult(
     string LastName,
     string Level,
     string TestConfigurationName,
+    int TestVersion,
     bool IsCompleted,
     decimal? FinalScore
 );

@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Gymnast> Gymnasts => Set<Gymnast>();
     public DbSet<GymnastLevel> GymnastLevels => Set<GymnastLevel>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
+    public DbSet<TestType> TestTypes => Set<TestType>();
     public DbSet<TestConfiguration> TestConfigurations => Set<TestConfiguration>();
     public DbSet<TestConfigurationExercise> TestConfigurationExercises => Set<TestConfigurationExercise>();
     public DbSet<TestSession> TestSessions => Set<TestSession>();
@@ -33,6 +34,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithMany()
             .HasForeignKey(u => u.UpdatedById)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<TestConfiguration>()
+            .HasOne(c => c.TestType)
+            .WithMany(t => t.Versions)
+            .HasForeignKey(c => c.TestTypeId);
 
         modelBuilder.Entity<TestConfigurationExercise>()
             .HasOne(e => e.TestConfiguration)

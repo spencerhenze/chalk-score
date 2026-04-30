@@ -9,6 +9,7 @@ export interface SessionGymnastResult {
   lastName: string;
   level: number;
   testConfigurationName: string;
+  testVersion: number;
   isCompleted: boolean;
   finalScore: number | null;
 }

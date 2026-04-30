@@ -29,7 +29,7 @@ import { environment } from '../environments/environment';
         redirect_uri: environment.auth0.redirectUri,
       },
       cacheLocation: 'localstorage',
-      useRefreshTokens: true,
+      useRefreshTokens: environment.nativeBrowser,
     }),
   ],
   providers: [
