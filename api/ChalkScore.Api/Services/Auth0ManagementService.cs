@@ -4,7 +4,7 @@ using ChalkScore.Api.Data.Entities;
 
 namespace ChalkScore.Api.Services;
 
-public class Auth0ManagementService(IHttpClientFactory httpClientFactory, IConfiguration config)
+public class Auth0ManagementService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<Auth0ManagementService> logger)
 {
     private readonly string _domain       = config["Auth0:Domain"]!;
     private readonly string _clientId     = config["Auth0:ManagementClientId"]!;
@@ -42,7 +42,7 @@ public class Auth0ManagementService(IHttpClientFactory httpClientFactory, IConfi
         var response = await client.DeleteAsync(
             $"https://{_domain}/api/v2/users/{Uri.EscapeDataString(auth0UserId)}");
 
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessOrLogAsync(response, $"DeleteUser {auth0UserId}");
     }
 
     private async Task SendRoleRequestAsync(HttpMethod method, string auth0UserId, string roleId, string? token = null)
@@ -58,7 +58,7 @@ public class Auth0ManagementService(IHttpClientFactory httpClientFactory, IConfi
         };
 
         var response = await client.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessOrLogAsync(response, $"{method.Method} roles for {auth0UserId}");
     }
 
     private async Task<string> GetManagementTokenAsync()
@@ -74,9 +74,20 @@ public class Auth0ManagementService(IHttpClientFactory httpClientFactory, IConfi
         });
 
         var response = await client.PostAsync($"https://{_domain}/oauth/token", body);
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessOrLogAsync(response, "GetManagementToken");
 
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         return doc.RootElement.GetProperty("access_token").GetString()!;
+    }
+
+    private async Task EnsureSuccessOrLogAsync(HttpResponseMessage response, string operation)
+    {
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            logger.LogError("Auth0 API error — {Operation}: {StatusCode} {Body}",
+                operation, (int)response.StatusCode, body);
+        }
+        response.EnsureSuccessStatusCode();
     }
 }

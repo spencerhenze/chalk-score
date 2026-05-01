@@ -78,15 +78,6 @@
                 }
               ]
             },
-            "staging": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.staging.ts"
-                }
-              ],
-              "outputHashing": "all"
-            },
             "ci": {
               "progress": false
             }
@@ -104,9 +95,6 @@
             },
             "dev": {
               "buildTarget": "app:build:dev"
-            },
-            "staging": {
-              "buildTarget": "app:build:staging"
             },
             "ci": {
               "progress": false

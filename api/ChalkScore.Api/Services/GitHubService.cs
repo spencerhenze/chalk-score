@@ -4,7 +4,7 @@ using ChalkScore.Api.Data.Entities;
 
 namespace ChalkScore.Api.Services;
 
-public class GitHubService(IHttpClientFactory httpClientFactory, IConfiguration config)
+public class GitHubService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<GitHubService> logger)
 {
     private readonly string _token         = config["GitHubIssues:Token"]!;
     private readonly string _owner         = config["GitHubIssues:Owner"]!;
@@ -34,7 +34,7 @@ public class GitHubService(IHttpClientFactory httpClientFactory, IConfiguration 
             $"https://api.github.com/repos/{_owner}/{_repo}/issues",
             new StringContent(payload, System.Text.Encoding.UTF8, "application/json"));
 
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessOrLogAsync(response, "PostIssue");
 
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         return doc.RootElement.GetProperty("node_id").GetString()!;
@@ -51,7 +51,7 @@ public class GitHubService(IHttpClientFactory httpClientFactory, IConfiguration 
             "https://api.github.com/graphql",
             new StringContent(payload, System.Text.Encoding.UTF8, "application/json"));
 
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessOrLogAsync(response, "GetProjectId");
 
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         return doc.RootElement
@@ -73,6 +73,17 @@ public class GitHubService(IHttpClientFactory httpClientFactory, IConfiguration 
             "https://api.github.com/graphql",
             new StringContent(payload, System.Text.Encoding.UTF8, "application/json"));
 
+        await EnsureSuccessOrLogAsync(response, "AddIssueToProject");
+    }
+
+    private async Task EnsureSuccessOrLogAsync(HttpResponseMessage response, string step)
+    {
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            logger.LogError("GitHub API error — {Step}: {StatusCode} {Body}",
+                step, (int)response.StatusCode, body);
+        }
         response.EnsureSuccessStatusCode();
     }
 

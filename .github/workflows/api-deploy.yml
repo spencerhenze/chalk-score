@@ -2,7 +2,7 @@ name: API Deploy
 
 on:
   push:
-    branches: [develop, release, master]
+    branches: [develop, master]
     paths:
       - 'api/**'
       - '.github/workflows/api-deploy.yml'
@@ -82,7 +82,7 @@ jobs:
     name: Deploy (${{ github.ref_name }})
     needs: build
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'master' && 'production' || github.ref_name == 'release' && 'staging' || 'dev' }}
+    environment: ${{ github.ref_name == 'master' && 'production' || 'dev' }}
 
     steps:
       - name: Set resource names
@@ -90,9 +90,6 @@ jobs:
           if [[ "${{ github.ref_name }}" == "master" ]]; then
             ENV_SLUG="prod"
             ASPNETCORE_ENV="Production"
-          elif [[ "${{ github.ref_name }}" == "release" ]]; then
-            ENV_SLUG="staging"
-            ASPNETCORE_ENV="Staging"
           else
             ENV_SLUG="dev"
             ASPNETCORE_ENV="Development"

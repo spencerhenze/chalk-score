@@ -36,20 +36,34 @@ A separate `chalkscore-prod` resource group exists but contains only a Log Analy
 
 ## Database (Neon)
 
-Both databases are serverless PostgreSQL on Neon's free tier (scale to zero).
+All databases are serverless PostgreSQL on Neon's free tier (scale to zero).
 
-- **Dev project:** `chalkscore-dev`
-- **Production project:** `chalkscore-prod`
+### Main Database (EF Core / app data)
 
-The connection string is stored as a `postgresql://` URI in the `DATABASE_URL` GitHub secret. The pipeline converts it to Npgsql key-value format at deploy time using a Python one-liner:
+Each environment has its own database:
+
+- **Dev:** `chalkscore-dev` Neon project
+- **Production:** `chalkscore-prod` Neon project
+
+Stored as `DATABASE_URL` in the GitHub environment secret. Injected into the container as `ConnectionStrings__DefaultConnection`.
+
+EF Core migrations run automatically on every deploy via a self-contained migration bundle (`efbundle`) compiled for `linux-x64`.
+
+### Feedback Database (deprecated)
+
+A single shared Neon database used by all environments for feedback storage. Stored as `FEEDBACK_DATABASE_URL` in the GitHub environment secret. Injected into the container as `ConnectionStrings__FeedbackDbConnection`.
+
+> **Note:** This database is being replaced by a direct GitHub project integration (via `GitHubService`) and will be removed once that integration is complete.
+
+### Connection string format
+
+Connection strings are stored as `postgresql://` URIs and converted to Npgsql key-value format at deploy time:
 
 ```python
 import os, urllib.parse as p
 u = p.urlparse(os.environ['DATABASE_URL'])
 print(f'Host={u.hostname};Database={u.path[1:]};Username={p.unquote(u.username)};Password={p.unquote(u.password)};SslMode=Require', end='')
 ```
-
-EF Core migrations run automatically on every deploy via a self-contained migration bundle (`efbundle`) compiled for `linux-x64`.
 
 ---
 
@@ -94,14 +108,14 @@ Roles (`Coach`, `Staff`) are assigned in the Auth0 dashboard and embedded as cus
 | Build & Push | Restores, builds migration bundle, builds Docker image, pushes to GHCR |
 | Deploy | Logs into Azure, runs migrations, creates or updates the Container App |
 
-**`mobile-build.yml`** — triggers on push to `develop` or `master` when mobile files change. Runs `ng build --configuration production` to verify the build compiles.
+**`mobile-build.yml`** — triggers on push to `develop` or `master` (and on pull requests) when mobile files change. Runs `ng build --configuration production` to verify the build compiles.
 
 ### GitHub Environments
 
 | Environment | Branch | Secrets |
 |---|---|---|
-| `dev` | `develop` | `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `DATABASE_URL`, `GHCR_TOKEN` |
-| `production` | `master` | `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `DATABASE_URL`, `GHCR_TOKEN` |
+| `dev` | `develop` | `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `AUTH0_MANAGEMENT_CLIENT_ID`, `AUTH0_MANAGEMENT_CLIENT_SECRET`, `AUTH0_STAFF_ROLE_ID`, `AUTH0_COACH_ROLE_ID`, `DATABASE_URL`, `FEEDBACK_DATABASE_URL`, `GHCR_TOKEN` |
+| `production` | `master` | `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `AUTH0_MANAGEMENT_CLIENT_ID`, `AUTH0_MANAGEMENT_CLIENT_SECRET`, `AUTH0_STAFF_ROLE_ID`, `AUTH0_COACH_ROLE_ID`, `DATABASE_URL`, `FEEDBACK_DATABASE_URL`, `GHCR_TOKEN` |
 
 ### Repository Secrets (shared across all environments)
 

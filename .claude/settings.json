@@ -7,7 +7,20 @@
       "Bash(dotnet ef *)",
       "Bash(psql -h localhost -d chalkscore_dev -U spencer -c ' *)",
       "Bash(psql -h localhost -d chalkscore_dev -U spencer -c \"SELECT COUNT\\(*\\) FROM \\\\\"Exercises\\\\\"; SELECT COUNT\\(*\\) FROM \\\\\"TestConfigurationExercises\\\\\";\")",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(grep -E \"\\(page|component\\)\\\\.ts$\")",
+      "WebFetch(domain:support.iclasspro.com)",
+      "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/.github/workflows)",
+      "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/Controllers)",
+      "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/Data/Entities)",
+      "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/Data/Migrations)",
+      "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/DTOs)"
+    ],
+    "additionalDirectories": [
+      "/Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api",
+      "/Users/spencer/Source/Templates/ionic-dotnet-auth0/mobile/app",
+      "/Users/spencer/Source/Templates/ionic-dotnet-auth0/.github/workflows",
+      "/Users/spencer/Source/Templates/ionic-dotnet-auth0"
     ]
   }
 }
