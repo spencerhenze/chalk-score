@@ -14,7 +14,8 @@ public class FeedbackController(
     IFeedbackRepository feedback,
     UserSyncService userSync,
     GitHubService gitHub,
-    IConfiguration config) : ControllerBase
+    IConfiguration config,
+    ILogger<FeedbackController> logger) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Submit([FromBody] SubmitFeedbackRequest request)
@@ -37,7 +38,10 @@ public class FeedbackController(
         };
 
         await feedback.SaveAsync(item);
-        await gitHub.CreateIssueAsync(item);
+
+        try { await gitHub.CreateIssueAsync(item); }
+        catch (Exception ex) { logger.LogError(ex, "Failed to create GitHub issue for feedback {Id}", item.Id); }
+
         return Ok();
     }
 }
