@@ -165,10 +165,10 @@ jobs:
                 "Auth0__StaffRoleId=${{ secrets.AUTH0_STAFF_ROLE_ID }}" \
                 "Auth0__CoachRoleId=${{ secrets.AUTH0_COACH_ROLE_ID }}" \
                 "ApplicationInsights__ConnectionString=${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}" \
-                "GitHubIssues__Token=${{ secrets.GITHUB_ISSUES_TOKEN }}" \
-                "GitHubIssues__Owner=${{ secrets.GITHUB_ISSUES_OWNER }}" \
-                "GitHubIssues__Repo=${{ secrets.GITHUB_ISSUES_REPO }}" \
-                "GitHubIssues__ProjectNumber=${{ secrets.GITHUB_ISSUES_PROJECT_NUMBER }}" \
+                "GitHubIssues__Token=${{ secrets.GITHUBISSUES__TOKEN }}" \
+                "GitHubIssues__Owner=${{ secrets.GITHUBISSUES__OWNER }}" \
+                "GitHubIssues__Repo=${{ secrets.GITHUBISSUES__REPO }}" \
+                "GitHubIssues__ProjectNumber=${{ secrets.GITHUBISSUES__PROJECT_NUMBER }}" \
               --output none
           else
             az containerapp create \
@@ -194,10 +194,10 @@ jobs:
                 "Auth0__StaffRoleId=${{ secrets.AUTH0_STAFF_ROLE_ID }}" \
                 "Auth0__CoachRoleId=${{ secrets.AUTH0_COACH_ROLE_ID }}" \
                 "ApplicationInsights__ConnectionString=${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}" \
-                "GitHubIssues__Token=${{ secrets.GITHUB_ISSUES_TOKEN }}" \
-                "GitHubIssues__Owner=${{ secrets.GITHUB_ISSUES_OWNER }}" \
-                "GitHubIssues__Repo=${{ secrets.GITHUB_ISSUES_REPO }}" \
-                "GitHubIssues__ProjectNumber=${{ secrets.GITHUB_ISSUES_PROJECT_NUMBER }}" \
+                "GitHubIssues__Token=${{ secrets.GITHUBISSUES__TOKEN }}" \
+                "GitHubIssues__Owner=${{ secrets.GITHUBISSUES__OWNER }}" \
+                "GitHubIssues__Repo=${{ secrets.GITHUBISSUES__REPO }}" \
+                "GitHubIssues__ProjectNumber=${{ secrets.GITHUBISSUES__PROJECT_NUMBER }}" \
               --output none
           fi
         env:
