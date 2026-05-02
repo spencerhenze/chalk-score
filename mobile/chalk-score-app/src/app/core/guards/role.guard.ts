@@ -35,13 +35,17 @@ export class RoleGuard implements CanActivate {
             }
             return true;
           }),
-          catchError(() => {
-            this.toast.create({
-              message: 'Unable to reach server. Please try again.',
-              duration: 3000,
-              color: 'danger',
-              position: 'bottom',
-            }).then(t => t.present());
+          catchError(err => {
+            // Auth failures (login_required, 401) are handled by AuthInterceptor — skip toast.
+            const isAuthError = err?.status === 401 || err?.error === 'login_required' || err?.error === 'consent_required';
+            if (!isAuthError) {
+              this.toast.create({
+                message: 'Unable to reach server. Please try again.',
+                duration: 3000,
+                color: 'danger',
+                position: 'bottom',
+              }).then(t => t.present());
+            }
             return of(false);
           }),
         );

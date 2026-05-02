@@ -15,7 +15,8 @@
       "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/Data/Entities)",
       "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/Data/Migrations)",
       "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/DTOs)",
-      "Bash(dotnet add *)"
+      "Bash(dotnet add *)",
+      "Bash(grep -r \"auth0\" /Users/spencer/Source/chalk-score/mobile --include=\"*.ts\" ! -path \"*/node_modules/*\" -l)"
     ],
     "additionalDirectories": [
       "/Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api",

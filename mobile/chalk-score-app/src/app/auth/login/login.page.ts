@@ -50,8 +50,14 @@ export class LoginPage implements OnDestroy {
 
   retry() {
     this.showRetry = false;
-    this.router.navigate(['/tabs/gymnasts'], { replaceUrl: true });
-    this.retryTimer = setTimeout(() => (this.showRetry = true), 20000);
+    this.auth.isAuthenticated$.pipe(take(1)).subscribe(authenticated => {
+      if (authenticated) {
+        this.router.navigate(['/tabs/gymnasts'], { replaceUrl: true });
+        this.retryTimer = setTimeout(() => (this.showRetry = true), 20000);
+      }
+      // If not authenticated, the interceptor already cleared the session and the
+      // template will switch to showing the sign-in button automatically.
+    });
   }
 
   login() {
