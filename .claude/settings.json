@@ -14,7 +14,8 @@
       "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/Controllers)",
       "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/Data/Entities)",
       "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/Data/Migrations)",
-      "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/DTOs)"
+      "Bash(mkdir -p /Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api/DTOs)",
+      "Bash(dotnet add *)"
     ],
     "additionalDirectories": [
       "/Users/spencer/Source/Templates/ionic-dotnet-auth0/api/AppTemplate.Api",

@@ -14,6 +14,7 @@ ChalkScore uses two environments: **dev** and **production**. Both share a singl
 | API | Azure Container App (`chalkscore-api-dev`) | Azure Container App (`chalkscore-api-prod`) |
 | Database | Neon — `chalkscore-dev` project | Neon — `chalkscore-prod` project |
 | Auth0 Audience | `https://chalkscore-api-dev` | `https://chalkscore-api` |
+| App Insights | `chalkscore-api-dev` | `chalkscore-api-prod` |
 | Mobile build config | `--configuration dev` | `--configuration production` |
 
 ---
@@ -25,6 +26,9 @@ ChalkScore uses two environments: **dev** and **production**. Both share a singl
 - **Resource group:** `chalkscore-dev` (shared — hosts both dev and prod container apps)
 - **Container Apps environment:** `chalkscore-env-dev` (shared)
 - **Container apps:**
+  - `chalkscore-api-dev`
+  - `chalkscore-api-prod`
+- **Application Insights resources:**
   - `chalkscore-api-dev`
   - `chalkscore-api-prod`
 - **Scale:** min 0 replicas, max 1 replica (scale to zero when idle)
@@ -114,8 +118,8 @@ Roles (`Coach`, `Staff`) are assigned in the Auth0 dashboard and embedded as cus
 
 | Environment | Branch | Secrets |
 |---|---|---|
-| `dev` | `develop` | `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `AUTH0_MANAGEMENT_CLIENT_ID`, `AUTH0_MANAGEMENT_CLIENT_SECRET`, `AUTH0_STAFF_ROLE_ID`, `AUTH0_COACH_ROLE_ID`, `DATABASE_URL`, `FEEDBACK_DATABASE_URL`, `GHCR_TOKEN` |
-| `production` | `master` | `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `AUTH0_MANAGEMENT_CLIENT_ID`, `AUTH0_MANAGEMENT_CLIENT_SECRET`, `AUTH0_STAFF_ROLE_ID`, `AUTH0_COACH_ROLE_ID`, `DATABASE_URL`, `FEEDBACK_DATABASE_URL`, `GHCR_TOKEN` |
+| `dev` | `develop` | `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `AUTH0_MANAGEMENT_CLIENT_ID`, `AUTH0_MANAGEMENT_CLIENT_SECRET`, `AUTH0_STAFF_ROLE_ID`, `AUTH0_COACH_ROLE_ID`, `DATABASE_URL`, `FEEDBACK_DATABASE_URL`, `GHCR_TOKEN`, `APPLICATIONINSIGHTS_CONNECTION_STRING` |
+| `production` | `master` | `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `AUTH0_MANAGEMENT_CLIENT_ID`, `AUTH0_MANAGEMENT_CLIENT_SECRET`, `AUTH0_STAFF_ROLE_ID`, `AUTH0_COACH_ROLE_ID`, `DATABASE_URL`, `FEEDBACK_DATABASE_URL`, `GHCR_TOKEN`, `APPLICATIONINSIGHTS_CONNECTION_STRING` |
 
 ### Repository Secrets (shared across all environments)
 
